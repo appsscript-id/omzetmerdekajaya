@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#0F5C4D">
+<title>Dashboard Omzet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+  // terapkan tema sebelum halaman tampil supaya tidak berkedip
+  try {
+    var t = localStorage.getItem('omzet_theme');
+    if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', t);
+  } catch (e) { document.documentElement.setAttribute('data-theme', 'light'); }
+</script>
+<style>
+:root{
+  --bg:#EDF0EC; --surface:#FFFFFF; --surface-2:#F4F6F3; --ink:#13231F; --muted:#5F716B; --line:#DDE4DF;
+  --brand:#0F5C4D; --brand-ink:#FFFFFF; --hero:#0F5C4D;
+  --good:#1B7F5C; --bad:#B3402F; --warn-bg:#FBF1DC; --warn-ink:#7A5212;
+  --c1:#0F5C4D; --c2:#C98A2B; --c3:#3E6FA3; --c4:#B3573F; --c5:#7B5A8C; --c6:#5BA89A; --c7:#B7C0BB;
+  --focus:#C98A2B;
+  color-scheme: light;
+}
+[data-theme="dark"]{
+  --bg:#0A1210; --surface:#121C19; --surface-2:#18251F; --ink:#E5EEEA; --muted:#8CA29A; --line:#22332E;
+  --brand:#3CBF9E; --brand-ink:#06201A; --hero:#0F4A3E;
+  --good:#4CC9A0; --bad:#F0806C; --warn-bg:#3A2E14; --warn-ink:#EBC274;
+  --c1:#3CBF9E; --c2:#E3AE50; --c3:#6E9FD6; --c4:#E07F66; --c5:#B28CC6; --c6:#8CD0C2; --c7:#4B5E58;
+  color-scheme: dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none !important}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font-family:'Plus Jakarta Sans',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  font-size:14px; line-height:1.5; font-variant-numeric:tabular-nums;
+}
+button,input,select{font:inherit; color:inherit}
+:focus-visible{outline:2px solid var(--focus); outline-offset:2px}
+
+/* ---------- indikator memuat ---------- */
+.loadbar{position:fixed; inset:0 0 auto 0; height:3px; z-index:50; overflow:hidden; background:transparent}
+.loadbar i{display:block; height:100%; width:35%; background:var(--c2); animation:slide 1s ease-in-out infinite}
+@keyframes slide{0%{margin-left:-35%}100%{margin-left:100%}}
+
+/* ---------- login ---------- */
+.login{
+  min-height:100vh; display:grid; place-items:center; padding:24px;
+  background-color:var(--bg);
+  background-image:repeating-linear-gradient(to bottom, transparent 0 39px, var(--line) 39px 40px);
+}
+.login-card{
+  width:100%; max-width:360px; background:var(--surface); border:1px solid var(--line);
+  border-radius:24px; padding:32px 28px 28px; text-align:center;
+}
+.mark{width:48px; height:48px; border-radius:14px; background:var(--hero); color:#fff; display:grid; place-items:center; margin:0 auto 16px}
+.mark.sm{width:36px; height:36px; border-radius:11px; margin:0}
+.login h1{margin:0 0 4px; font-size:22px; font-weight:800; letter-spacing:-.01em}
+.login .sub{margin:0 0 22px; color:var(--muted)}
+.dots{display:flex; justify-content:center; gap:12px; min-height:16px; margin-bottom:10px}
+.dots i{width:14px; height:14px; border-radius:50%; border:2px solid var(--line); transition:background .12s, border-color .12s}
+.dots i.on{background:var(--brand); border-color:var(--brand)}
+.dots.shake{animation:shake .4s}
+@keyframes shake{20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}
+.err{min-height:20px; margin:0 0 14px; color:var(--bad); font-weight:600; font-size:13px}
+.pad{display:grid; grid-template-columns:repeat(3,1fr); gap:10px}
+.pad button{
+  height:58px; border-radius:16px; border:1px solid var(--line); background:var(--surface-2);
+  font-size:20px; font-weight:600; cursor:pointer; transition:background .12s, transform .06s;
+}
+.pad button:hover{background:var(--line)}
+.pad button:active{transform:scale(.96)}
+.pad button.go{background:var(--brand); border-color:var(--brand); color:var(--brand-ink); font-size:15px; font-weight:700}
+.pad button.go:hover{filter:brightness(1.08)}
+.pad button.del{font-size:16px; color:var(--muted)}
+.pad button:disabled{opacity:.5; cursor:wait}
+
+/* ---------- aplikasi ---------- */
+.app{max-width:1280px; margin:0 auto; padding:20px 20px 56px}
+.topbar{display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:18px; flex-wrap:wrap}
+.brand{display:flex; align-items:center; gap:12px}
+.brand-name{font-weight:800; font-size:18px; letter-spacing:-.01em; line-height:1.2}
+.brand-sub{color:var(--muted); font-size:12px}
+.actions{display:flex; gap:8px}
+.btn{
+  display:inline-flex; align-items:center; gap:8px; height:38px; padding:0 14px; border-radius:10px;
+  background:var(--surface); border:1px solid var(--line); cursor:pointer; font-weight:600; font-size:13px;
+}
+.btn:hover{background:var(--surface-2)}
+.btn.icon{width:38px; padding:0; justify-content:center}
+.btn.primary{background:var(--brand); border-color:var(--brand); color:var(--brand-ink)}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn svg{flex:none}
+
+.card{background:var(--surface); border:1px solid var(--line); border-radius:16px; padding:18px}
+.filters{display:grid; grid-template-columns:1.2fr 1fr 1fr 1.6fr auto; gap:12px; align-items:end; margin-bottom:16px}
+.field label{display:block; font-size:12px; font-weight:600; color:var(--muted); margin-bottom:5px}
+.field input,.field select{
+  width:100%; height:40px; padding:0 12px; border-radius:10px; border:1px solid var(--line);
+  background:var(--surface-2); outline:none;
+}
+.field input:focus,.field select:focus{border-color:var(--brand)}
+
+.banner{display:flex; gap:10px; align-items:flex-start; padding:12px 14px; border-radius:12px; margin-bottom:16px; font-size:13px; background:var(--warn-bg); color:var(--warn-ink)}
+.banner b{font-weight:700}
+
+.grid{display:grid; grid-template-columns:repeat(12,minmax(0,1fr)); gap:16px}
+.s3{grid-column:span 3}.s4{grid-column:span 4}.s5{grid-column:span 5}.s7{grid-column:span 7}.s8{grid-column:span 8}.s12{grid-column:span 12}
+
+.hero{
+  background:var(--hero); color:#fff; border-radius:22px; padding:26px;
+  display:flex; flex-direction:column; justify-content:space-between; gap:22px; min-height:340px;
+}
+.hero .lbl{font-size:13px; font-weight:600; opacity:.8}
+.hero .val{font-size:clamp(28px,3.4vw,40px); font-weight:800; letter-spacing:-.02em; line-height:1.1; margin:6px 0 10px; word-break:break-word}
+.hero .per{font-size:13px; opacity:.8}
+.chip{display:inline-flex; align-items:center; height:24px; padding:0 10px; border-radius:999px; font-size:12px; font-weight:700; background:rgba(255,255,255,.16); margin-top:12px}
+.chip.up{background:#D5F2E4; color:#0B5A3D}
+.chip.down{background:#F8DDD7; color:#8E2E1F}
+.hero dl{margin:0; display:grid; gap:10px; border-top:1px solid rgba(255,255,255,.18); padding-top:16px}
+.hero dl div{display:flex; justify-content:space-between; gap:12px; font-size:13px}
+.hero dt{opacity:.75}
+.hero dd{margin:0; font-weight:700; text-align:right}
+
+.kpi .k-l{font-size:12px; font-weight:600; color:var(--muted)}
+.kpi .k-v{font-size:22px; font-weight:800; letter-spacing:-.01em; margin:6px 0 2px; word-break:break-word}
+.kpi .k-f{font-size:12px; color:var(--muted)}
+.kpi{border-left:4px solid var(--c2)}
+.kpi.b2{border-left-color:var(--c3)}
+.kpi.b3{border-left-color:var(--c4)}
+.kpi.b4{border-left-color:var(--c5)}
+
+.card-h{display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:12px; flex-wrap:wrap}
+.card-h h2{margin:0; font-size:15px; font-weight:700}
+.card-h p{margin:2px 0 0; color:var(--muted); font-size:12px}
+.chart-box{position:relative; height:290px}
+.chart-box.tall{height:340px}
+.seg{display:inline-flex; background:var(--surface-2); border:1px solid var(--line); border-radius:10px; padding:3px}
+.seg button{border:0; background:transparent; height:28px; padding:0 12px; border-radius:8px; font-size:12px; font-weight:600; color:var(--muted); cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--surface); color:var(--ink); box-shadow:0 0 0 1px var(--line)}
+
+/* ---------- tabel ---------- */
+.tbl-wrap{overflow-x:auto; margin:0 -18px; padding:0 18px}
+table{width:100%; border-collapse:collapse; min-width:720px}
+th,td{padding:11px 10px; text-align:left; border-bottom:1px solid var(--line); white-space:nowrap}
+th{font-size:12px; font-weight:700; color:var(--muted); background:var(--surface)}
+th .th{background:none; border:0; padding:0; cursor:pointer; font-weight:700; color:inherit; display:inline-flex; gap:4px; align-items:center}
+th .th:hover{color:var(--ink)}
+th.num,td.num{text-align:right}
+td.cust{max-width:340px; overflow:hidden; text-overflow:ellipsis}
+tbody tr:hover{background:var(--surface-2)}
+tfoot td{font-weight:800; border-bottom:0; border-top:2px solid var(--ink); background:var(--surface-2)}
+.bar{display:inline-block; vertical-align:middle; width:70px; height:6px; border-radius:3px; background:var(--surface-2); margin-right:8px; overflow:hidden; border:1px solid var(--line)}
+.bar i{display:block; height:100%; background:var(--c1)}
+.tag{display:inline-block; margin-left:8px; padding:1px 8px; border-radius:999px; font-size:11px; font-weight:700; background:var(--warn-bg); color:var(--warn-ink)}
+.pager{display:flex; justify-content:space-between; align-items:center; gap:12px; margin-top:14px; flex-wrap:wrap; color:var(--muted); font-size:13px}
+.pager .btn{height:34px}
+.pager .btn:disabled{opacity:.45; cursor:default}
+.note{margin:12px 0 0; font-size:12px; color:var(--muted)}
+
+.empty{text-align:center; padding:56px 20px}
+.empty h2{margin:0 0 6px; font-size:18px}
+.empty p{margin:0 auto; max-width:460px; color:var(--muted)}
+
+.toast{
+  position:fixed; left:50%; bottom:24px; transform:translateX(-50%); background:var(--ink); color:var(--bg);
+  padding:11px 18px; border-radius:12px; font-weight:600; font-size:13px; z-index:60; max-width:92vw;
+}
+
+/* ---------- responsif ---------- */
+@media (max-width:1000px){
+  .filters{grid-template-columns:1fr 1fr}
+  .filters .field.q{grid-column:span 2}
+  .s3{grid-column:span 6}
+  .s4,.s5,.s7,.s8{grid-column:span 12}
+  .hero{min-height:0}
+}
+@media (max-width:560px){
+  .app{padding:14px 12px 40px}
+  .s3{grid-column:span 12}
+  .btn .t{display:none}
+  .btn{padding:0 11px}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation:none !important; transition:none !important}
+}
+</style>
+</head>
+<body>
+
+<div class="loadbar" id="loadbar" hidden><i></i></div>
+
+<!-- ===================== LOGIN ===================== -->
+<main class="login" id="login" hidden>
+  <div class="login-card">
+    <div class="mark" aria-hidden="true">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-8M22 20H2"/></svg>
+    </div>
+    <h1>Dashboard Omzet</h1>
+    <p class="sub">Masukkan PIN untuk membuka laporan.</p>
+    <div class="dots" id="dots" role="img" aria-label="PIN"></div>
+    <p class="err" id="loginErr" role="alert"></p>
+    <div class="pad" id="pad">
+      <button type="button" data-k="1">1</button><button type="button" data-k="2">2</button><button type="button" data-k="3">3</button>
+      <button type="button" data-k="4">4</button><button type="button" data-k="5">5</button><button type="button" data-k="6">6</button>
+      <button type="button" data-k="7">7</button><button type="button" data-k="8">8</button><button type="button" data-k="9">9</button>
+      <button type="button" class="del" data-k="del" aria-label="Hapus satu angka">Hapus</button>
+      <button type="button" data-k="0">0</button>
+      <button type="button" class="go" data-k="go">Masuk</button>
+    </div>
+  </div>
+</main>
+
+<!-- ===================== APLIKASI ===================== -->
+<div class="app" id="app" hidden>
+  <header class="topbar">
+    <div class="brand">
+      <div class="mark sm" aria-hidden="true">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-8M22 20H2"/></svg>
+      </div>
+      <div>
+        <div class="brand-name">Dashboard Omzet</div>
+        <div class="brand-sub" id="updated">Memuat data…</div>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn" id="btnRefresh" type="button">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/></svg>
+        <span class="t">Muat ulang</span>
+      </button>
+      <button class="btn icon" id="btnTheme" type="button" aria-label="Ganti tema terang atau gelap">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+      </button>
+      <button class="btn" id="btnLogout" type="button">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/></svg>
+        <span class="t">Keluar</span>
+      </button>
+    </div>
+  </header>
+
+  <section class="card filters" aria-label="Filter">
+    <div class="field">
+      <label for="fMonth">Periode</label>
+      <select id="fMonth"></select>
+    </div>
+    <div class="field">
+      <label for="fFrom">Dari tanggal</label>
+      <input type="date" id="fFrom">
+    </div>
+    <div class="field">
+      <label for="fTo">Sampai tanggal</label>
+      <input type="date" id="fTo">
+    </div>
+    <div class="field q">
+      <label for="fQ">Cari customer atau nomor nota</label>
+      <input type="search" id="fQ" placeholder="Contoh: wangta atau 2395" autocomplete="off">
+    </div>
+    <button class="btn" id="btnReset" type="button">Atur ulang</button>
+  </section>
+
+  <div class="banner" id="warn" hidden></div>
+
+  <section class="card empty" id="empty" hidden>
+    <h2>Belum ada data</h2>
+    <p>Tempel data dari Excel ke sheet <b>Data</b> mulai dari sel A2, lalu klik <b>Muat ulang</b>.</p>
+  </section>
+
+  <div class="grid" id="dash" hidden>
+    <section class="hero s4" aria-label="Ringkasan omzet">
+      <div>
+        <div class="lbl">Omzet (penjualan sebelum PPN)</div>
+        <div class="val" id="hVal">Rp 0</div>
+        <div class="per" id="hPer">-</div>
+        <span class="chip" id="hDelta" hidden></span>
+      </div>
+      <dl>
+        <div><dt>Customer aktif</dt><dd id="hCust">0</dd></div>
+        <div><dt>Rata-rata per hari transaksi</dt><dd id="hAvg">Rp 0</dd></div>
+        <div><dt>Nota terbesar</dt><dd id="hMax">-</dd></div>
+      </dl>
+    </section>
+
+    <section class="card s8">
+      <div class="card-h">
+        <div>
+          <h2>Tren penjualan</h2>
+          <p id="trendSub">Batang = penjualan, garis = akumulasi</p>
+        </div>
+        <div class="seg" role="group" aria-label="Rentang tren">
+          <button type="button" data-g="day" aria-pressed="false">Harian</button>
+          <button type="button" data-g="month" aria-pressed="false">Bulanan</button>
+        </div>
+      </div>
+      <div class="chart-box tall"><canvas id="chTrend"></canvas></div>
+    </section>
+
+    <section class="card kpi s3"><div class="k-l">Total PPN 11%</div><div class="k-v" id="kPpn">Rp 0</div><div class="k-f" id="kPpnF">-</div></section>
+    <section class="card kpi b2 s3"><div class="k-l">Total piutang</div><div class="k-v" id="kPiu">Rp 0</div><div class="k-f">Penjualan + PPN</div></section>
+    <section class="card kpi b3 s3"><div class="k-l">Jumlah nota</div><div class="k-v" id="kNota">0</div><div class="k-f">Nota pada periode ini</div></section>
+    <section class="card kpi b4 s3"><div class="k-l">Rata-rata per nota</div><div class="k-v" id="kAvg">Rp 0</div><div class="k-f">Penjualan sebelum PPN</div></section>
+
+    <section class="card s7">
+      <div class="card-h">
+        <div><h2>10 customer terbesar</h2><p>Berdasarkan penjualan pada periode terpilih</p></div>
+      </div>
+      <div class="chart-box"><canvas id="chTop"></canvas></div>
+    </section>
+
+    <section class="card s5">
+      <div class="card-h">
+        <div><h2>Porsi customer</h2><p>5 terbesar dibanding sisanya</p></div>
+      </div>
+      <div class="chart-box"><canvas id="chShare"></canvas></div>
+    </section>
+
+    <section class="card s12">
+      <div class="card-h">
+        <div class="seg" role="group" aria-label="Jenis tabel">
+          <button type="button" data-t="nota" aria-pressed="true">Daftar nota</button>
+          <button type="button" data-t="cust" aria-pressed="false">Ringkasan customer</button>
+        </div>
+        <button class="btn" id="btnCsv" type="button">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5M4 21h16"/></svg>
+          <span class="t">Unduh CSV</span>
+        </button>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead id="tHead"></thead>
+          <tbody id="tBody"></tbody>
+          <tfoot id="tFoot"></tfoot>
+        </table>
+      </div>
+      <div class="pager">
+        <span id="pInfo"></span>
+        <span>
+          <button class="btn" id="pPrev" type="button">Sebelumnya</button>
+          <button class="btn" id="pNext" type="button">Berikutnya</button>
+        </span>
+      </div>
+      <p class="note" id="dupNote" hidden>Tanda “Nota ganda” muncul bila nomor nota yang sama tercatat lebih dari satu kali di sheet. Biasanya itu data yang terpaste dua kali, jadi periksa dan hapus salah satunya.</p>
+    </section>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script>
+(() => {
+'use strict';
+
+/* ============================================================
+   PENGATURAN  -  isi dengan URL Web App dari Google Apps Script
+   ============================================================ */
+const API_URL = 'GANTI_DENGAN_URL_WEB_APP_ANDA';
+
+const TOKEN_KEY = 'omzet_token';
+const PAGE_SIZE = 15;
+const $ = id => document.getElementById(id);
+
+/* ---------- format ---------- */
+const nf = new Intl.NumberFormat('id-ID', { maximumFractionDigits: 0 });
+const num = n => nf.format(Math.round(n || 0));
+const rp = n => 'Rp ' + num(n);
+const pct = (n, d = 1) => n.toLocaleString('id-ID', { maximumFractionDigits: d, minimumFractionDigits: 0 }) + '%';
+const compact = n => {
+  const a = Math.abs(n);
+  if (a >= 1e9) return (n / 1e9).toLocaleString('id-ID', { maximumFractionDigits: 1 }) + ' M';
+  if (a >= 1e6) return (n / 1e6).toLocaleString('id-ID', { maximumFractionDigits: 1 }) + ' jt';
+  if (a >= 1e3) return (n / 1e3).toLocaleString('id-ID', { maximumFractionDigits: 0 }) + ' rb';
+  return String(Math.round(n));
+};
+const MON_S = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+const MON_L = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+const fmtDate = s => { const [y,m,d] = s.split('-'); return `${d} ${MON_S[+m-1]} ${y}`; };
+const fmtDateShort = s => { const [,m,d] = s.split('-'); return `${d} ${MON_S[+m-1]}`; };
+const monthLabel = k => { const [y,m] = k.split('-'); return `${MON_L[+m-1]} ${y}`; };
+const monthShort = k => { const [y,m] = k.split('-'); return `${MON_S[+m-1]} ${y}`; };
+const pad2 = n => String(n).padStart(2,'0');
+const lastDay = k => { const [y,m] = k.split('-').map(Number); return new Date(y, m, 0).getDate(); };
+const addDays = (s, n) => { const d = new Date(s + 'T00:00:00Z'); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0,10); };
+const daysBetween = (a, b) => Math.round((Date.parse(b + 'T00:00:00Z') - Date.parse(a + 'T00:00:00Z')) / 864e5);
+const nextMonth = k => { let [y,m] = k.split('-').map(Number); m++; if (m > 12) { m = 1; y++; } return `${y}-${pad2(m)}`; };
+const prevMonth = k => { let [y,m] = k.split('-').map(Number); m--; if (m < 1) { m = 12; y--; } return `${y}-${pad2(m)}`; };
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const sum = (arr, k) => arr.reduce((a, r) => a + (r[k] || 0), 0);
+
+/* ---------- state ---------- */
+const S = {
+  rows: [], dup: new Set(),
+  f: { month: 'all', from: '', to: '', q: '' },
+  gran: 'auto',
+  tab: 'nota', page: 1,
+  sort: { nota: { k: 'tgl', d: -1 }, cust: { k: 'penjualan', d: -1 } },
+  charts: {}, loaded: false, pin: ''
+};
+
+/* ============================================================
+   API
+   ============================================================ */
+const getToken = () => { try { return sessionStorage.getItem(TOKEN_KEY) || ''; } catch (e) { return ''; } };
+const setToken = t => { try { t ? sessionStorage.setItem(TOKEN_KEY, t) : sessionStorage.removeItem(TOKEN_KEY); } catch (e) {} };
+
+async function api(action, payload = {}) {
+  if (!API_URL || API_URL.indexOf('GANTI_') === 0) {
+    return { ok: false, message: 'URL Web App belum diisi di index.html (variabel API_URL).' };
+  }
+  try {
+    // text/plain supaya tidak memicu preflight CORS di Apps Script
+    const res = await fetch(API_URL, {
+      method: 'POST',
+      body: JSON.stringify(Object.assign({ action, token: getToken() }, payload))
+    });
+    return await res.json();
+  } catch (e) {
+    return { ok: false, message: 'Tidak bisa terhubung ke server. Periksa koneksi atau URL Web App.' };
+  }
+}
+
+/* ============================================================
+   UI dasar
+   ============================================================ */
+let toastTimer;
+function toast(msg) {
+  const t = $('toast'); t.textContent = msg; t.hidden = false;
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => { t.hidden = true; }, 3800);
+}
+const setLoading = on => { $('loadbar').hidden = !on; };
+
+function showLogin() {
+  $('app').hidden = true; $('login').hidden = false;
+  S.pin = ''; renderDots(); $('loginErr').textContent = '';
+}
+function showApp() { $('login').hidden = true; $('app').hidden = false; }
+
+/* ============================================================
+   LOGIN PIN
+   ============================================================ */
+function renderDots() {
+  const n = Math.max(6, S.pin.length);
+  $('dots').innerHTML = Array.from({ length: n }, (_, i) => `<i class="${i < S.pin.length ? 'on' : ''}"></i>`).join('');
+}
+function pressKey(k) {
+  if ($('login').hidden) return;
+  $('loginErr').textContent = '';
+  if (k === 'del') S.pin = S.pin.slice(0, -1);
+  else if (k === 'go') return submitPin();
+  else if (/^\d$/.test(k) && S.pin.length < 8) S.pin += k;
+  renderDots();
+}
+async function submitPin() {
+  if (!S.pin) { $('loginErr').textContent = 'Masukkan PIN dulu.'; return; }
+  const btns = $('pad').querySelectorAll('button');
+  btns.forEach(b => b.disabled = true); setLoading(true);
+  const r = await api('login', { pin: S.pin, token: '' });
+  btns.forEach(b => b.disabled = false); setLoading(false);
+  if (r.ok) {
+    setToken(r.token); S.pin = ''; renderDots(); showApp(); loadData();
+  } else {
+    $('loginErr').textContent = r.message || 'Gagal masuk.';
+    S.pin = ''; renderDots();
+    const d = $('dots'); d.classList.remove('shake'); void d.offsetWidth; d.classList.add('shake');
+  }
+}
+async function logout(expired) {
+  if (!expired) await api('logout');
+  setToken(''); S.loaded = false;
+  Object.values(S.charts).forEach(c => c.destroy()); S.charts = {};
+  showLogin();
+  if (expired) $('loginErr').textContent = 'Sesi berakhir. Masukkan PIN lagi.';
+}
+
+/* ============================================================
+   MUAT DATA
+   ============================================================ */
+async function loadData() {
+  setLoading(true);
+  $('btnRefresh').disabled = true;
+  const r = await api('data');
+  setLoading(false); $('btnRefresh').disabled = false;
+
+  if (!r.ok) {
+    if (r.code === 'AUTH') return logout(true);
+    toast(r.message || 'Gagal memuat data.');
+    $('updated').textContent = 'Gagal memuat data';
+    return;
+  }
+
+  S.rows = r.rows || [];
+  S.loaded = true;
+
+  // tandai nomor nota yang muncul lebih dari satu kali (bisa jadi data terpaste dua kali)
+  const cnt = {};
+  S.rows.forEach(x => { if (x.nota) cnt[x.nota] = (cnt[x.nota] || 0) + 1; });
+  S.dup = new Set(Object.keys(cnt).filter(k => cnt[k] > 1));
+
+  $('updated').textContent = 'Diperbarui ' + new Date(r.updatedAt).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' });
+
+  const w = $('warn');
+  if (r.skipped > 0) {
+    w.hidden = false;
+    w.innerHTML = `<div><b>${r.skipped} baris dilewati</b> karena tanggal atau nama customer tidak terbaca (baris sheet: ${r.skippedRows.join(', ')}${r.skipped > r.skippedRows.length ? ', …' : ''}). Periksa kolom B dan C pada baris tersebut.</div>`;
+  } else { w.hidden = true; }
+
+  initPeriods();
+  render();
+}
+
+/* ============================================================
+   FILTER
+   ============================================================ */
+function initPeriods() {
+  const months = [...new Set(S.rows.map(r => r.tgl.slice(0, 7)))].sort().reverse();
+  const sel = $('fMonth');
+  sel.innerHTML =
+    '<option value="all">Semua periode</option>' +
+    months.map(m => `<option value="${m}">${monthLabel(m)}</option>`).join('') +
+    '<option value="custom" hidden>Rentang kustom</option>';
+
+  const valid = S.f.month === 'all' || S.f.month === 'custom' || months.includes(S.f.month);
+  if (!S.loadedOnce) { S.f.month = months[0] || 'all'; S.loadedOnce = true; }
+  else if (!valid) S.f.month = 'all';
+
+  if (S.f.month !== 'custom') applyMonth(S.f.month);
+  sel.value = S.f.month;
+  syncInputs();
+}
+function applyMonth(m) {
+  if (m === 'all') { S.f.from = ''; S.f.to = ''; }
+  else if (m !== 'custom') { S.f.from = m + '-01'; S.f.to = `${m}-${pad2(lastDay(m))}`; }
+}
+function syncInputs() { $('fFrom').value = S.f.from; $('fTo').value = S.f.to; $('fQ').value = S.f.q; }
+
+function filterRows(from, to, q) {
+  q = (q || '').trim().toLowerCase();
+  return S.rows.filter(r =>
+    (!from || r.tgl >= from) && (!to || r.tgl <= to) &&
+    (!q || r.customer.toLowerCase().includes(q) || r.nota.toLowerCase().includes(q))
+  );
+}
+
+/* ============================================================
+   RENDER
+   ============================================================ */
+function render() {
+  if (!S.loaded) return;
+  const none = S.rows.length === 0;
+  $('empty').hidden = !none; $('dash').hidden = none;
+  if (none) return;
+
+  const rows = filterRows(S.f.from, S.f.to, S.f.q);
+  renderKpis(rows);
+  renderCharts(rows);
+  renderTable(rows);
+}
+
+function renderKpis(rows) {
+  const tot = sum(rows, 'penjualan'), ppn = sum(rows, 'ppn'), piu = sum(rows, 'piutang');
+  const custs = new Set(rows.map(r => r.customer));
+  const days = new Set(rows.map(r => r.tgl));
+
+  $('hVal').textContent = rp(tot);
+  if (rows.length) {
+    const ds = rows.map(r => r.tgl).sort();
+    $('hPer').textContent = ds[0] === ds[ds.length - 1] ? fmtDate(ds[0]) : `${fmtDate(ds[0])} – ${fmtDate(ds[ds.length - 1])}`;
+  } else $('hPer').textContent = 'Tidak ada nota pada filter ini';
+
+  $('hCust').textContent = num(custs.size);
+  $('hAvg').textContent = rp(days.size ? tot / days.size : 0);
+  const big = rows.reduce((a, r) => (!a || r.penjualan > a.penjualan ? r : a), null);
+  $('hMax').textContent = big ? rp(big.penjualan) : '-';
+  $('hMax').title = big ? `${big.customer} (nota ${big.nota})` : '';
+
+  // perbandingan dengan bulan sebelumnya (hanya bila periode = satu bulan penuh)
+  const chip = $('hDelta'); chip.hidden = true; chip.className = 'chip';
+  if (/^\d{4}-\d{2}$/.test(S.f.month)) {
+    const pm = prevMonth(S.f.month);
+    const prev = sum(filterRows(`${pm}-01`, `${pm}-${pad2(lastDay(pm))}`, S.f.q), 'penjualan');
+    if (prev > 0) {
+      const d = (tot - prev) / prev * 100;
+      chip.hidden = false; chip.classList.add(d >= 0 ? 'up' : 'down');
+      chip.textContent = `${d >= 0 ? '+' : ''}${pct(d)} dibanding ${monthLabel(pm)}`;
+    }
+  }
+
+  $('kPpn').textContent = rp(ppn);
+  $('kPpnF').textContent = tot ? `${pct(ppn / tot * 100)} dari penjualan` : '-';
+  $('kPiu').textContent = rp(piu);
+  $('kNota').textContent = num(rows.length);
+  $('kAvg').textContent = rp(rows.length ? tot / rows.length : 0);
+}
+
+/* ---------- grafik ---------- */
+function themeColors() {
+  const cs = getComputedStyle(document.documentElement), g = n => cs.getPropertyValue(n).trim();
+  return { ink: g('--ink'), muted: g('--muted'), line: g('--line'), surface: g('--surface'),
+           pal: [g('--c1'), g('--c2'), g('--c3'), g('--c4'), g('--c5'), g('--c6')], other: g('--c7') };
+}
+function mk(id, cfg) {
+  if (S.charts[id]) S.charts[id].destroy();
+  S.charts[id] = new Chart($(id), cfg);
+}
+
+function buildTrend(rows) {
+  if (!rows.length) return { labels: [], vals: [], cum: [], gran: 'day' };
+  const ds = rows.map(r => r.tgl).sort(), min = ds[0], max = ds[ds.length - 1];
+  const span = daysBetween(min, max) + 1;
+  let gran = S.gran === 'auto' ? (span <= 62 ? 'day' : 'month') : S.gran;
+  if (gran === 'day' && span > 186) gran = 'month';
+
+  const labels = [], vals = [];
+  if (gran === 'day') {
+    const m = {}; rows.forEach(r => { m[r.tgl] = (m[r.tgl] || 0) + r.penjualan; });
+    for (let d = min; d <= max; d = addDays(d, 1)) { labels.push(fmtDateShort(d)); vals.push(m[d] || 0); }
+  } else {
+    const m = {}; rows.forEach(r => { const k = r.tgl.slice(0, 7); m[k] = (m[k] || 0) + r.penjualan; });
+    for (let k = min.slice(0, 7); k <= max.slice(0, 7); k = nextMonth(k)) { labels.push(monthShort(k)); vals.push(m[k] || 0); }
+  }
+  let run = 0; const cum = vals.map(v => (run += v));
+  return { labels, vals, cum, gran, span };
+}
+
+function renderCharts(rows) {
+  const C = themeColors();
+  Chart.defaults.font.family = "'Plus Jakarta Sans', system-ui, sans-serif";
+  Chart.defaults.font.size = 12;
+  Chart.defaults.color = C.muted;
+
+  /* tren */
+  const t = buildTrend(rows);
+  document.querySelectorAll('[data-g]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.g === t.gran)));
+  $('trendSub').textContent = t.gran === 'day' ? 'Per hari. Batang = penjualan, garis = akumulasi' : 'Per bulan. Batang = penjualan, garis = akumulasi';
+  mk('chTrend', {
+    type: 'bar',
+    data: { labels: t.labels, datasets: [
+      { type: 'bar', label: 'Penjualan', data: t.vals, backgroundColor: C.pal[0], borderRadius: 6, maxBarThickness: 38, order: 2, yAxisID: 'y' },
+      { type: 'line', label: 'Akumulasi', data: t.cum, borderColor: C.pal[1], backgroundColor: C.pal[1], borderWidth: 2.5,
+        tension: .3, pointRadius: t.labels.length > 40 ? 0 : 3, order: 1, yAxisID: 'y1' }
+    ] },
+    options: {
+      responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 8 } },
+        tooltip: { callbacks: { label: c => ` ${c.dataset.label}: ${rp(c.parsed.y)}` } }
+      },
+      scales: {
+        x: { grid: { display: false }, ticks: { maxRotation: 0, autoSkip: true } },
+        y: { beginAtZero: true, grid: { color: C.line }, ticks: { callback: v => compact(v) } },
+        y1: { position: 'right', beginAtZero: true, grid: { drawOnChartArea: false }, ticks: { callback: v => compact(v) } }
+      }
+    }
+  });
+
+  /* top customer */
+  const agg = custAgg(rows);
+  const top = agg.slice(0, 10);
+  mk('chTop', {
+    type: 'bar',
+    data: { labels: top.map(x => x.customer), datasets: [{ data: top.map(x => x.penjualan), backgroundColor: C.pal[0], borderRadius: 6, maxBarThickness: 22 }] },
+    options: {
+      indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => ` ${rp(c.parsed.x)}` } } },
+      scales: {
+        x: { beginAtZero: true, grid: { color: C.line }, ticks: { callback: v => compact(v) } },
+        y: { grid: { display: false }, ticks: { callback(v) { const l = this.getLabelForValue(v); return l.length > 24 ? l.slice(0, 23) + '…' : l; } } }
+      }
+    }
+  });
+
+  /* porsi */
+  const t5 = agg.slice(0, 5), rest = agg.slice(5).reduce((a, x) => a + x.penjualan, 0);
+  const labels = t5.map(x => x.customer), data = t5.map(x => x.penjualan);
+  const colors = C.pal.slice(0, t5.length);
+  if (rest > 0) { labels.push('Lainnya'); data.push(rest); colors.push(C.other); }
+  const total = data.reduce((a, b) => a + b, 0);
+  mk('chShare', {
+    type: 'doughnut',
+    data: { labels, datasets: [{ data, backgroundColor: colors, borderColor: C.surface, borderWidth: 3 }] },
+    options: {
+      responsive: true, maintainAspectRatio: false, cutout: '62%',
+      plugins: {
+        legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 8, generateLabels: ch => {
+          const d = ch.data; return d.labels.map((l, i) => ({ text: (l.length > 22 ? l.slice(0, 21) + '…' : l), fillStyle: d.datasets[0].backgroundColor[i], strokeStyle: d.datasets[0].backgroundColor[i], fontColor: C.muted, pointStyle: 'circle', index: i }));
+        } } },
+        tooltip: { callbacks: { label: c => ` ${c.label}: ${rp(c.parsed)} (${pct(total ? c.parsed / total * 100 : 0)})` } }
+      }
+    }
+  });
+}
+
+/* ---------- tabel ---------- */
+const COLS = {
+  nota: [
+    { k: 'nota', t: 'No. Nota' }, { k: 'tgl', t: 'Tanggal' }, { k: 'customer', t: 'Customer' },
+    { k: 'penjualan', t: 'Penjualan', n: 1 }, { k: 'ppn', t: 'PPN 11%', n: 1 }, { k: 'piutang', t: 'Piutang', n: 1 }
+  ],
+  cust: [
+    { k: 'customer', t: 'Customer' }, { k: 'nota', t: 'Jumlah nota', n: 1 },
+    { k: 'penjualan', t: 'Penjualan', n: 1 }, { k: 'ppn', t: 'PPN 11%', n: 1 }, { k: 'piutang', t: 'Piutang', n: 1 }, { k: 'share', t: 'Porsi', n: 1 }
+  ]
+};
+
+function custAgg(rows) {
+  const m = {};
+  rows.forEach(r => {
+    const c = m[r.customer] || (m[r.customer] = { customer: r.customer, nota: 0, penjualan: 0, ppn: 0, piutang: 0 });
+    c.nota++; c.penjualan += r.penjualan; c.ppn += r.ppn; c.piutang += r.piutang;
+  });
+  const tot = sum(rows, 'penjualan');
+  return Object.values(m).map(c => Object.assign(c, { share: tot ? c.penjualan / tot * 100 : 0 })).sort((a, b) => b.penjualan - a.penjualan);
+}
+const cmp = (a, b) => (typeof a === 'number' && typeof b === 'number') ? a - b : String(a).localeCompare(String(b), 'id', { numeric: true });
+
+function renderTable(rows) {
+  const tab = S.tab, cols = COLS[tab];
+  const data = tab === 'nota' ? rows.slice() : custAgg(rows);
+  const { k, d } = S.sort[tab];
+  data.sort((a, b) => cmp(a[k], b[k]) * d);
+
+  const pages = Math.max(1, Math.ceil(data.length / PAGE_SIZE));
+  S.page = Math.min(S.page, pages);
+  const start = (S.page - 1) * PAGE_SIZE, slice = data.slice(start, start + PAGE_SIZE);
+
+  $('tHead').innerHTML = '<tr>' + cols.map(c => {
+    const on = c.k === k, arrow = on ? (d > 0 ? '↑' : '↓') : '';
+    return `<th class="${c.n ? 'num' : ''}" aria-sort="${on ? (d > 0 ? 'ascending' : 'descending') : 'none'}"><button class="th" type="button" data-sort="${c.k}">${c.t}<span>${arrow}</span></button></th>`;
+  }).join('') + '</tr>';
+
+  let anyDup = false;
+  $('tBody').innerHTML = slice.length ? slice.map(r => {
+    if (tab === 'nota') {
+      const dup = S.dup.has(r.nota); if (dup) anyDup = true;
+      return `<tr><td>${esc(r.nota)}${dup ? '<span class="tag" title="Nomor nota ini muncul lebih dari satu kali di sheet">Nota ganda</span>' : ''}</td>
+        <td>${fmtDate(r.tgl)}</td><td class="cust" title="${esc(r.customer)}">${esc(r.customer)}</td>
+        <td class="num">${num(r.penjualan)}</td><td class="num">${num(r.ppn)}</td><td class="num">${num(r.piutang)}</td></tr>`;
+    }
+    return `<tr><td class="cust" title="${esc(r.customer)}">${esc(r.customer)}</td><td class="num">${num(r.nota)}</td>
+      <td class="num">${num(r.penjualan)}</td><td class="num">${num(r.ppn)}</td><td class="num">${num(r.piutang)}</td>
+      <td class="num"><span class="bar"><i style="width:${Math.min(100, r.share)}%"></i></span>${pct(r.share)}</td></tr>`;
+  }).join('') : `<tr><td colspan="${cols.length}" style="text-align:center;padding:36px;color:var(--muted)">Tidak ada nota pada filter ini. Ubah periode atau hapus kata pencarian.</td></tr>`;
+
+  const tp = sum(rows, 'penjualan'), tn = sum(rows, 'ppn'), tu = sum(rows, 'piutang');
+  $('tFoot').innerHTML = tab === 'nota'
+    ? `<tr><td colspan="3">Total (${num(rows.length)} nota)</td><td class="num">${num(tp)}</td><td class="num">${num(tn)}</td><td class="num">${num(tu)}</td></tr>`
+    : `<tr><td>Total (${num(data.length)} customer)</td><td class="num">${num(rows.length)}</td><td class="num">${num(tp)}</td><td class="num">${num(tn)}</td><td class="num">${num(tu)}</td><td class="num">${tp ? '100%' : '-'}</td></tr>`;
+
+  $('pInfo').textContent = data.length ? `Menampilkan ${start + 1}–${start + slice.length} dari ${num(data.length)}` : 'Tidak ada data';
+  $('pPrev').disabled = S.page <= 1; $('pNext').disabled = S.page >= pages;
+  $('dupNote').hidden = !(tab === 'nota' && anyDup);
+  document.querySelectorAll('[data-t]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.t === tab)));
+}
+
+/* ---------- ekspor CSV ---------- */
+function exportCsv() {
+  const rows = filterRows(S.f.from, S.f.to, S.f.q).sort((a, b) => a.tgl.localeCompare(b.tgl) || cmp(a.nota, b.nota));
+  if (!rows.length) return toast('Tidak ada data untuk diunduh.');
+  const q = v => '"' + String(v).replace(/"/g, '""') + '"';
+  const lines = [['No. Nota', 'Tanggal Nota', 'Nama Customer', 'Penjualan', 'PPN 11%', 'Piutang'].map(q).join(';')]
+    .concat(rows.map(r => [q(r.nota), q(r.tgl.split('-').reverse().join('-')), q(r.customer), r.penjualan, r.ppn, r.piutang].join(';')));
+  const blob = new Blob(['\ufeff' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `omzet_${S.f.from || 'semua'}_${S.f.to || 'periode'}.csv`;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+
+/* ============================================================
+   EVENT
+   ============================================================ */
+$('pad').addEventListener('click', e => { const b = e.target.closest('button'); if (b) pressKey(b.dataset.k); });
+document.addEventListener('keydown', e => {
+  if ($('login').hidden) return;
+  if (/^\d$/.test(e.key)) pressKey(e.key);
+  else if (e.key === 'Backspace') pressKey('del');
+  else if (e.key === 'Enter') pressKey('go');
+});
+
+$('btnRefresh').addEventListener('click', loadData);
+$('btnLogout').addEventListener('click', () => logout(false));
+$('btnTheme').addEventListener('click', () => {
+  const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  try { localStorage.setItem('omzet_theme', next); } catch (e) {}
+  render();
+});
+
+$('fMonth').addEventListener('change', e => { S.f.month = e.target.value; applyMonth(S.f.month); syncInputs(); S.page = 1; render(); });
+const onDate = () => {
+  S.f.from = $('fFrom').value; S.f.to = $('fTo').value;
+  S.f.month = (S.f.from || S.f.to) ? 'custom' : 'all';
+  $('fMonth').value = S.f.month; S.page = 1; render();
+};
+$('fFrom').addEventListener('change', onDate);
+$('fTo').addEventListener('change', onDate);
+let qTimer;
+$('fQ').addEventListener('input', e => { clearTimeout(qTimer); qTimer = setTimeout(() => { S.f.q = e.target.value; S.page = 1; render(); }, 200); });
+$('btnReset').addEventListener('click', () => {
+  S.f = { month: 'all', from: '', to: '', q: '' }; $('fMonth').value = 'all'; syncInputs(); S.page = 1; render();
+});
+
+document.querySelector('[aria-label="Rentang tren"]').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return; S.gran = b.dataset.g; render();
+});
+document.querySelector('[aria-label="Jenis tabel"]').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return; S.tab = b.dataset.t; S.page = 1; render();
+});
+$('tHead').addEventListener('click', e => {
+  const b = e.target.closest('[data-sort]'); if (!b) return;
+  const s = S.sort[S.tab], k = b.dataset.sort;
+  if (s.k === k) s.d = -s.d; else { s.k = k; s.d = (k === 'customer' || k === 'nota' && S.tab === 'nota') ? 1 : -1; }
+  S.page = 1; render();
+});
+$('pPrev').addEventListener('click', () => { S.page--; render(); });
+$('pNext').addEventListener('click', () => { S.page++; render(); });
+$('btnCsv').addEventListener('click', exportCsv);
+
+/* ============================================================
+   MULAI
+   ============================================================ */
+renderDots();
+if (getToken()) { showApp(); loadData(); } else { showLogin(); }
+
+})();
+</script>
+</body>
+</html>
