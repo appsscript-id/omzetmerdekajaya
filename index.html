@@ -11,8 +11,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script>
-  // terapkan tema, warna, dan model tampilan sebelum halaman tampil supaya tidak berkedip
-  // Bawaan selalu TERANG (walaupun HP dalam mode gelap). Mode gelap hanya aktif bila dipilih manual.
   (function () {
     var el = document.documentElement, t = 'light', c = 'hutan', s = 'standar';
     try {
@@ -40,7 +38,6 @@
   --good:#1B7F5C; --bad:#B3402F; --warn-bg:#FBF1DC; --warn-ink:#7A5212;
   --c1:var(--brand); --c2:var(--accent); --c3:#3E6FA3; --c4:#B3573F; --c5:#7B5A8C; --c6:#5BA89A; --c7:#B7C0BB;
   --focus:var(--accent);
-  /* variabel model tampilan */
   --r:16px; --rs:10px; --bw:1px; --bc:var(--line); --sh:none; --pad:18px; --gap:16px; --fs:14px;
   --font:'Plus Jakarta Sans',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
   color-scheme: light;
@@ -57,9 +54,7 @@
   color-scheme: dark;
 }
 
-/* =====================================================================
-   10 TEMA WARNA   (brand = warna utama, hero = kartu besar, accent = aksen)
-   ===================================================================== */
+/* ===== 10 TEMA WARNA ===== */
 [data-color="hutan"]  {--brand:#0F5C4D; --hero:#0F5C4D; --accent:#C98A2B}
 [data-color="hutan"][data-theme="dark"]  {--brand:#3CBF9E; --hero:#0F4A3E; --accent:#E3AE50}
 [data-color="laut"]   {--brand:#1D4E89; --hero:#1D4E89; --accent:#E0A030}
@@ -81,35 +76,23 @@
 [data-color="indigo"] {--brand:#3730A3; --hero:#3730A3; --accent:#E0A32E}
 [data-color="indigo"][data-theme="dark"] {--brand:#8F8BF0; --hero:#2A2478; --accent:#F0C060}
 
-/* =====================================================================
-   10 MODEL TAMPILAN
-   ===================================================================== */
-/* 1. standar = nilai bawaan di :root */
-/* 2. lembut */
+/* ===== 10 MODEL TAMPILAN ===== */
 [data-style="lembut"]{--r:26px; --rs:14px; --bw:0px; --sh:0 10px 30px -14px rgba(0,0,0,.28)}
-/* 3. tegas */
 [data-style="tegas"]{--r:4px; --rs:3px; --bw:2px; --bc:var(--ink); --sh:5px 5px 0 var(--ink)}
-/* 4. kompak */
 [data-style="kompak"]{--r:10px; --rs:8px; --pad:12px; --gap:10px; --fs:13px}
-/* 5. luas */
 [data-style="luas"]{--r:22px; --rs:12px; --pad:26px; --gap:24px; --fs:15px}
-/* 6. datar */
 [data-style="datar"]{--r:8px; --rs:6px; --bw:0px; --sh:none}
-/* 7. kaca */
 [data-style="kaca"]{--r:20px; --rs:12px; --sh:0 8px 30px -16px rgba(0,0,0,.35)}
 [data-style="kaca"] body{background:linear-gradient(135deg, color-mix(in srgb, var(--brand) 30%, var(--bg)), var(--bg) 62%) fixed}
 [data-style="kaca"] .card,[data-style="kaca"] .login-card,[data-style="kaca"] .modal{
   background:color-mix(in srgb, var(--surface) 68%, transparent);
   -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px);
 }
-/* 8. klasik */
 [data-style="klasik"]{--r:2px; --rs:2px; --bc:var(--ink); --font:Georgia,'Times New Roman',serif}
-/* 9. satu kolom */
 [data-style="satu"] .s3,[data-style="satu"] .s4,[data-style="satu"] .s5,[data-style="satu"] .s7,[data-style="satu"] .s8,[data-style="satu"] .s12{grid-column:span 12}
 [data-style="satu"] .kpi.s3{grid-column:span 6}
 [data-style="satu"] .hero{min-height:0}
 [data-style="satu"] .app{max-width:760px}
-/* 10. majalah */
 [data-style="majalah"] .hero{grid-column:span 12; flex-direction:row; align-items:flex-end; justify-content:space-between; min-height:0; flex-wrap:wrap}
 [data-style="majalah"] .hero dl{border-top:0; border-left:1px solid rgba(255,255,255,.22); padding:0 0 0 26px; min-width:280px}
 [data-style="majalah"] .hero .val{font-size:clamp(34px,5vw,56px)}
@@ -126,6 +109,7 @@ body{
   margin:0; background:var(--bg); color:var(--ink);
   font-family:var(--font);
   font-size:var(--fs); line-height:1.5; font-variant-numeric:tabular-nums;
+  overflow-x:hidden;
 }
 button,input,select{font:inherit; color:inherit}
 :focus-visible{outline:2px solid var(--focus); outline-offset:2px}
@@ -178,6 +162,7 @@ button,input,select{font:inherit; color:inherit}
 .btn{
   display:inline-flex; align-items:center; gap:8px; height:38px; padding:0 14px; border-radius:var(--rs);
   background:var(--surface); border:1px solid var(--line); cursor:pointer; font-weight:600; font-size:13px;
+  white-space:nowrap;
 }
 .btn:hover{background:var(--surface-2)}
 .btn.icon{width:38px; padding:0; justify-content:center}
@@ -186,13 +171,24 @@ button,input,select{font:inherit; color:inherit}
 .btn svg{flex:none}
 
 .card{background:var(--surface); border:var(--bw) solid var(--bc); border-radius:var(--r); padding:var(--pad); box-shadow:var(--sh)}
-.filters{display:grid; grid-template-columns:1.2fr 1fr 1fr 1.6fr auto; gap:12px; align-items:end; margin-bottom:var(--gap)}
+
+/* ---------- FILTER (DIPERBAIKI) ---------- */
+.filters{
+  display:grid;
+  grid-template-columns:1.2fr 1fr 1fr 1.6fr auto;
+  gap:12px;
+  align-items:end;
+  margin-bottom:var(--gap);
+}
+.field{min-width:0}
 .field label{display:block; font-size:12px; font-weight:600; color:var(--muted); margin-bottom:5px}
 .field input,.field select{
-  width:100%; height:40px; padding:0 12px; border-radius:var(--rs); border:1px solid var(--line);
-  background:var(--surface-2); outline:none;
+  width:100%; max-width:100%; height:40px; padding:0 12px; border-radius:var(--rs);
+  border:1px solid var(--line); background:var(--surface-2); outline:none;
+  box-sizing:border-box;
 }
 .field input:focus,.field select:focus{border-color:var(--brand)}
+.filters > .btn{height:40px}
 
 .banner{display:flex; gap:10px; align-items:flex-start; padding:12px 14px; border-radius:var(--rs); margin-bottom:var(--gap); font-size:13px; background:var(--warn-bg); color:var(--warn-ink)}
 .banner b{font-weight:700}
@@ -234,7 +230,7 @@ button,input,select{font:inherit; color:inherit}
 .seg button[aria-pressed="true"]{background:var(--surface); color:var(--ink); box-shadow:0 0 0 1px var(--line)}
 
 /* ---------- tabel ---------- */
-.tbl-wrap{overflow-x:auto; margin:0 calc(var(--pad) * -1); padding:0 var(--pad)}
+.tbl-wrap{overflow-x:auto; margin:0 calc(var(--pad) * -1); padding:0 var(--pad); -webkit-overflow-scrolling:touch}
 table{width:100%; border-collapse:collapse; min-width:720px}
 th,td{padding:11px 10px; text-align:left; border-bottom:1px solid var(--line); white-space:nowrap}
 th{font-size:12px; font-weight:700; color:var(--muted); background:transparent}
@@ -291,9 +287,12 @@ tfoot td{font-weight:800; border-bottom:0; border-top:2px solid var(--ink); back
 .modal-f{display:flex; justify-content:space-between; gap:8px; margin-top:20px; flex-wrap:wrap}
 
 /* ---------- responsif ---------- */
+
+/* Tablet / layar sedang */
 @media (max-width:1000px){
   .filters{grid-template-columns:1fr 1fr}
   .filters .field.q{grid-column:span 2}
+  .filters > .btn{grid-column:span 2; width:100%; justify-content:center}
   .s3{grid-column:span 6}
   .s4,.s5,.s7,.s8{grid-column:span 12}
   .hero{min-height:0}
@@ -301,14 +300,47 @@ tfoot td{font-weight:800; border-bottom:0; border-top:2px solid var(--ink); back
   [data-style="majalah"] .hero dl{border-left:0; border-top:1px solid rgba(255,255,255,.22); padding:16px 0 0; min-width:0}
   [data-style="majalah"] .card.s7,[data-style="majalah"] .card.s5{grid-column:span 12}
 }
+
+/* HP / HP kecil — filter full 1 kolom, semua rata kiri-kanan */
 @media (max-width:560px){
   .app{padding:14px 12px 40px}
+
+  /* Filter jadi 1 kolom supaya semua field rata kanan-kiri */
+  .filters{
+    grid-template-columns:1fr !important;
+    gap:10px;
+    padding:14px;
+  }
+  .filters .field,
+  .filters .field.q{grid-column:auto !important; width:100%}
+  .filters > .btn{
+    grid-column:auto !important;
+    width:100%;
+    justify-content:center;
+  }
+
   .s3{grid-column:span 12}
   .btn .t{display:none}
   .btn{padding:0 11px}
+  .seg button{padding:0 9px; font-size:11.5px}
   .swatches{grid-template-columns:repeat(3,1fr)}
   .styles{grid-template-columns:1fr}
+
+  /* tabel: kurangi margin negatif di HP supaya tidak melewati card */
+  .tbl-wrap{margin:0; padding:0}
+
+  .pager{justify-content:center; text-align:center}
+  .pager > span:last-child{display:flex; gap:8px; width:100%}
+  .pager .btn{flex:1; justify-content:center}
 }
+
+/* HP sangat kecil */
+@media (max-width:380px){
+  .app{padding:12px 10px 36px}
+  .filters{padding:12px}
+  .field label{font-size:11.5px}
+}
+
 @media (prefers-reduced-motion:reduce){
   *{animation:none !important; transition:none !important}
 }
@@ -359,698 +391,4 @@ tfoot td{font-weight:800; border-bottom:0; border-top:2px solid var(--ink); back
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/></svg>
         <span class="t">Muat ulang</span>
       </button>
-      <button class="btn icon" id="btnSettings" type="button" aria-label="Pengaturan tampilan">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h0a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h0a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v0a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-      </button>
-      <button class="btn icon" id="btnTheme" type="button" aria-label="Ganti tema terang atau gelap">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
-      </button>
-      <button class="btn" id="btnLogout" type="button">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/></svg>
-        <span class="t">Keluar</span>
-      </button>
-    </div>
-  </header>
-
-  <section class="card filters" aria-label="Filter">
-    <div class="field">
-      <label for="fMonth">Periode</label>
-      <select id="fMonth"></select>
-    </div>
-    <div class="field">
-      <label for="fFrom">Dari tanggal</label>
-      <input type="date" id="fFrom">
-    </div>
-    <div class="field">
-      <label for="fTo">Sampai tanggal</label>
-      <input type="date" id="fTo">
-    </div>
-    <div class="field q">
-      <label for="fQ">Cari customer atau nomor nota</label>
-      <input type="search" id="fQ" placeholder="Contoh: wangta atau 2395" autocomplete="off">
-    </div>
-    <button class="btn" id="btnReset" type="button">Atur ulang</button>
-  </section>
-
-  <div class="banner" id="warn" hidden></div>
-
-  <section class="card empty" id="empty" hidden>
-    <h2>Belum ada data</h2>
-    <p>Tempel data dari Excel ke sheet <b>Data</b> mulai dari sel A2, lalu klik <b>Muat ulang</b>.</p>
-  </section>
-
-  <div class="grid" id="dash" hidden>
-    <section class="hero s4" aria-label="Ringkasan omzet">
-      <div>
-        <div class="lbl">Omzet (penjualan sebelum PPN)</div>
-        <div class="val" id="hVal">Rp 0</div>
-        <div class="per" id="hPer">-</div>
-        <span class="chip" id="hDelta" hidden></span>
-      </div>
-      <dl>
-        <div><dt>Customer aktif</dt><dd id="hCust">0</dd></div>
-        <div><dt>Rata-rata per hari transaksi</dt><dd id="hAvg">Rp 0</dd></div>
-        <div><dt>Nota terbesar</dt><dd id="hMax">-</dd></div>
-      </dl>
-    </section>
-
-    <section class="card s8">
-      <div class="card-h">
-        <div>
-          <h2>Tren penjualan</h2>
-          <p id="trendSub">Batang = penjualan, garis = akumulasi</p>
-        </div>
-        <div class="seg" role="group" aria-label="Rentang tren">
-          <button type="button" data-g="day" aria-pressed="false">Harian</button>
-          <button type="button" data-g="month" aria-pressed="false">Bulanan</button>
-        </div>
-      </div>
-      <div class="chart-box tall"><canvas id="chTrend"></canvas></div>
-    </section>
-
-    <section class="card kpi s3"><div class="k-l">Total PPN 11%</div><div class="k-v" id="kPpn">Rp 0</div><div class="k-f" id="kPpnF">-</div></section>
-    <section class="card kpi b2 s3"><div class="k-l">Total piutang</div><div class="k-v" id="kPiu">Rp 0</div><div class="k-f">Penjualan + PPN</div></section>
-    <section class="card kpi b3 s3"><div class="k-l">Jumlah nota</div><div class="k-v" id="kNota">0</div><div class="k-f">Nota pada periode ini</div></section>
-    <section class="card kpi b4 s3"><div class="k-l">Rata-rata per nota</div><div class="k-v" id="kAvg">Rp 0</div><div class="k-f">Penjualan sebelum PPN</div></section>
-
-    <section class="card s7">
-      <div class="card-h">
-        <div><h2>10 customer terbesar</h2><p>Berdasarkan penjualan pada periode terpilih</p></div>
-      </div>
-      <div class="chart-box"><canvas id="chTop"></canvas></div>
-    </section>
-
-    <section class="card s5">
-      <div class="card-h">
-        <div><h2>Porsi customer</h2><p>5 terbesar dibanding sisanya</p></div>
-      </div>
-      <div class="chart-box"><canvas id="chShare"></canvas></div>
-    </section>
-
-    <section class="card s12">
-      <div class="card-h">
-        <div class="seg" role="group" aria-label="Jenis tabel">
-          <button type="button" data-t="nota" aria-pressed="true">Daftar nota</button>
-          <button type="button" data-t="cust" aria-pressed="false">Ringkasan customer</button>
-        </div>
-        <button class="btn" id="btnCsv" type="button">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5M4 21h16"/></svg>
-          <span class="t">Unduh CSV</span>
-        </button>
-      </div>
-      <div class="tbl-wrap">
-        <table>
-          <thead id="tHead"></thead>
-          <tbody id="tBody"></tbody>
-          <tfoot id="tFoot"></tfoot>
-        </table>
-      </div>
-      <div class="pager">
-        <span id="pInfo"></span>
-        <span>
-          <button class="btn" id="pPrev" type="button">Sebelumnya</button>
-          <button class="btn" id="pNext" type="button">Berikutnya</button>
-        </span>
-      </div>
-      <p class="note" id="dupNote" hidden>Tanda “Nota ganda” muncul bila nomor nota yang sama tercatat lebih dari satu kali di sheet. Biasanya itu data yang terpaste dua kali, jadi periksa dan hapus salah satunya.</p>
-    </section>
-  </div>
-</div>
-
-<!-- ===================== PENGATURAN ===================== -->
-<div class="modal-back" id="modalBack" hidden>
-  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="mTitle">
-    <div class="modal-h">
-      <h2 id="mTitle">Pengaturan tampilan</h2>
-      <button class="btn icon" id="mClose" type="button" aria-label="Tutup">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
-      </button>
-    </div>
-
-    <h3>Mode</h3>
-    <div class="seg" role="group" aria-label="Mode terang atau gelap" id="modeSeg">
-      <button type="button" data-mode="light" aria-pressed="false">Terang</button>
-      <button type="button" data-mode="dark" aria-pressed="false">Gelap</button>
-    </div>
-
-    <h3>Tema warna</h3>
-    <p class="hint">Pilih satu dari 10 warna.</p>
-    <div class="swatches" id="swatches"></div>
-
-    <h3>Model tampilan</h3>
-    <p class="hint">Pilih satu dari 10 gaya tata letak.</p>
-    <div class="styles" id="styles"></div>
-
-    <div class="modal-f">
-      <button class="btn" id="mReset" type="button">Kembalikan bawaan</button>
-      <button class="btn primary" id="mDone" type="button">Selesai</button>
-    </div>
-  </div>
-</div>
-
-<div class="toast" id="toast" role="status" hidden></div>
-
-<script>
-(() => {
-'use strict';
-
-/* ============================================================
-   PENGATURAN  -  isi dengan URL Web App dari Google Apps Script
-   ============================================================ */
-const API_URL = 'https://script.google.com/macros/s/AKfycbxY66fL8JMcg6lnoHzrSbu-P3_DKPSNmZ75iXHcWwte2rXqoWVhMajqYZQyvbDLuQZ2/exec';
-
-const TOKEN_KEY = 'omzet_token';
-const PAGE_SIZE = 15;
-const $ = id => document.getElementById(id);
-const root = document.documentElement;
-
-/* ---------- daftar tema & model tampilan ---------- */
-const COLORS = [
-  { id: 'hutan',  n: 'Hijau Hutan',  a: '#0F5C4D', b: '#C98A2B' },
-  { id: 'laut',   n: 'Biru Laut',    a: '#1D4E89', b: '#E0A030' },
-  { id: 'anggur', n: 'Ungu Anggur',  a: '#5B3A8C', b: '#D98A3D' },
-  { id: 'marun',  n: 'Merah Marun',  a: '#8C2F39', b: '#C9A13B' },
-  { id: 'senja',  n: 'Oranye Senja', a: '#C25A12', b: '#1F6F78' },
-  { id: 'tosca',  n: 'Tosca',        a: '#0E7490', b: '#D9822B' },
-  { id: 'mawar',  n: 'Pink Mawar',   a: '#B03A6B', b: '#3A7F6B' },
-  { id: 'kopi',   n: 'Coklat Kopi',  a: '#6B4423', b: '#B8862F' },
-  { id: 'baja',   n: 'Abu Baja',     a: '#3F4E5C', b: '#D08A2E' },
-  { id: 'indigo', n: 'Indigo',       a: '#3730A3', b: '#E0A32E' }
-];
-const STYLES = [
-  { id: 'standar', n: 'Standar',     d: 'Seimbang dan rapi' },
-  { id: 'lembut',  n: 'Lembut',      d: 'Sudut bulat, bayangan halus' },
-  { id: 'tegas',   n: 'Tegas',       d: 'Garis tebal, bayangan keras' },
-  { id: 'kompak',  n: 'Kompak',      d: 'Rapat, muat lebih banyak' },
-  { id: 'luas',    n: 'Luas',        d: 'Lega dan huruf lebih besar' },
-  { id: 'datar',   n: 'Datar',       d: 'Tanpa garis dan bayangan' },
-  { id: 'kaca',    n: 'Kaca',        d: 'Kartu transparan berlatar warna' },
-  { id: 'klasik',  n: 'Klasik',      d: 'Huruf serif, sudut tajam' },
-  { id: 'satu',    n: 'Satu kolom',  d: 'Disusun ke bawah, mudah di HP' },
-  { id: 'majalah', n: 'Majalah',     d: 'Omzet besar di bagian atas' }
-];
-
-/* ---------- format ---------- */
-const nf = new Intl.NumberFormat('id-ID', { maximumFractionDigits: 0 });
-const num = n => nf.format(Math.round(n || 0));
-const rp = n => 'Rp ' + num(n);
-const pct = (n, d = 1) => n.toLocaleString('id-ID', { maximumFractionDigits: d, minimumFractionDigits: 0 }) + '%';
-const compact = n => {
-  const a = Math.abs(n);
-  if (a >= 1e9) return (n / 1e9).toLocaleString('id-ID', { maximumFractionDigits: 1 }) + ' M';
-  if (a >= 1e6) return (n / 1e6).toLocaleString('id-ID', { maximumFractionDigits: 1 }) + ' jt';
-  if (a >= 1e3) return (n / 1e3).toLocaleString('id-ID', { maximumFractionDigits: 0 }) + ' rb';
-  return String(Math.round(n));
-};
-const MON_S = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
-const MON_L = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
-const fmtDate = s => { const [y,m,d] = s.split('-'); return `${d} ${MON_S[+m-1]} ${y}`; };
-const fmtDateShort = s => { const [,m,d] = s.split('-'); return `${d} ${MON_S[+m-1]}`; };
-const monthLabel = k => { const [y,m] = k.split('-'); return `${MON_L[+m-1]} ${y}`; };
-const monthShort = k => { const [y,m] = k.split('-'); return `${MON_S[+m-1]} ${y}`; };
-const pad2 = n => String(n).padStart(2,'0');
-const lastDay = k => { const [y,m] = k.split('-').map(Number); return new Date(y, m, 0).getDate(); };
-const addDays = (s, n) => { const d = new Date(s + 'T00:00:00Z'); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0,10); };
-const daysBetween = (a, b) => Math.round((Date.parse(b + 'T00:00:00Z') - Date.parse(a + 'T00:00:00Z')) / 864e5);
-const nextMonth = k => { let [y,m] = k.split('-').map(Number); m++; if (m > 12) { m = 1; y++; } return `${y}-${pad2(m)}`; };
-const prevMonth = k => { let [y,m] = k.split('-').map(Number); m--; if (m < 1) { m = 12; y--; } return `${y}-${pad2(m)}`; };
-const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const sum = (arr, k) => arr.reduce((a, r) => a + (r[k] || 0), 0);
-
-/* ---------- state ---------- */
-const S = {
-  rows: [], dup: new Set(),
-  f: { month: 'all', from: '', to: '', q: '' },
-  gran: 'auto',
-  tab: 'nota', page: 1,
-  sort: { nota: { k: 'tgl', d: -1 }, cust: { k: 'penjualan', d: -1 } },
-  charts: {}, loaded: false, pin: ''
-};
-
-/* ============================================================
-   API
-   ============================================================ */
-const getToken = () => { try { return sessionStorage.getItem(TOKEN_KEY) || ''; } catch (e) { return ''; } };
-const setToken = t => { try { t ? sessionStorage.setItem(TOKEN_KEY, t) : sessionStorage.removeItem(TOKEN_KEY); } catch (e) {} };
-
-async function api(action, payload = {}) {
-  if (!API_URL || API_URL.indexOf('GANTI_') === 0) {
-    return { ok: false, message: 'URL Web App belum diisi di index.html (variabel API_URL).' };
-  }
-  try {
-    // text/plain supaya tidak memicu preflight CORS di Apps Script
-    const res = await fetch(API_URL, {
-      method: 'POST',
-      body: JSON.stringify(Object.assign({ action, token: getToken() }, payload))
-    });
-    return await res.json();
-  } catch (e) {
-    return { ok: false, message: 'Tidak bisa terhubung ke server. Periksa koneksi atau URL Web App.' };
-  }
-}
-
-/* ============================================================
-   UI dasar
-   ============================================================ */
-let toastTimer;
-function toast(msg) {
-  const t = $('toast'); t.textContent = msg; t.hidden = false;
-  clearTimeout(toastTimer); toastTimer = setTimeout(() => { t.hidden = true; }, 3800);
-}
-const setLoading = on => { $('loadbar').hidden = !on; };
-
-function showLogin() {
-  $('app').hidden = true; $('login').hidden = false;
-  S.pin = ''; renderDots(); $('loginErr').textContent = '';
-}
-function showApp() { $('login').hidden = true; $('app').hidden = false; }
-
-/* ============================================================
-   PENGATURAN TAMPILAN
-   ============================================================ */
-const savePref = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
-
-function refreshSettings() {
-  const c = root.getAttribute('data-color'), s = root.getAttribute('data-style'), m = root.getAttribute('data-theme');
-  document.querySelectorAll('#swatches .sw').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.color === c)));
-  document.querySelectorAll('#styles .opt').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.style === s)));
-  document.querySelectorAll('#modeSeg button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.mode === m)));
-}
-function setColor(id) { root.setAttribute('data-color', id); savePref('omzet_color', id); refreshSettings(); render(); }
-function setStyle(id) { root.setAttribute('data-style', id); savePref('omzet_style', id); refreshSettings(); }
-function setMode(m) { root.setAttribute('data-theme', m); savePref('omzet_theme', m); refreshSettings(); render(); }
-
-function buildSettings() {
-  $('swatches').innerHTML = COLORS.map(c =>
-    `<button type="button" class="sw" data-color="${c.id}" aria-pressed="false" style="--a:${c.a};--b:${c.b}"><i></i>${esc(c.n)}</button>`).join('');
-  $('styles').innerHTML = STYLES.map(s =>
-    `<button type="button" class="opt" data-style="${s.id}" aria-pressed="false"><b>${esc(s.n)}</b><span>${esc(s.d)}</span></button>`).join('');
-  refreshSettings();
-}
-function openSettings() { $('modalBack').hidden = false; refreshSettings(); $('mDone').focus(); }
-function closeSettings() { $('modalBack').hidden = true; }
-
-/* ============================================================
-   LOGIN PIN
-   ============================================================ */
-function renderDots() {
-  const n = Math.max(6, S.pin.length);
-  $('dots').innerHTML = Array.from({ length: n }, (_, i) => `<i class="${i < S.pin.length ? 'on' : ''}"></i>`).join('');
-}
-function pressKey(k) {
-  if ($('login').hidden) return;
-  $('loginErr').textContent = '';
-  if (k === 'del') S.pin = S.pin.slice(0, -1);
-  else if (k === 'go') return submitPin();
-  else if (/^\d$/.test(k) && S.pin.length < 8) S.pin += k;
-  renderDots();
-}
-async function submitPin() {
-  if (!S.pin) { $('loginErr').textContent = 'Masukkan PIN dulu.'; return; }
-  const btns = $('pad').querySelectorAll('button');
-  btns.forEach(b => b.disabled = true); setLoading(true);
-  const r = await api('login', { pin: S.pin, token: '' });
-  btns.forEach(b => b.disabled = false); setLoading(false);
-  if (r.ok) {
-    setToken(r.token); S.pin = ''; renderDots(); showApp(); loadData();
-  } else {
-    $('loginErr').textContent = r.message || 'Gagal masuk.';
-    S.pin = ''; renderDots();
-    const d = $('dots'); d.classList.remove('shake'); void d.offsetWidth; d.classList.add('shake');
-  }
-}
-async function logout(expired) {
-  if (!expired) await api('logout');
-  setToken(''); S.loaded = false;
-  Object.values(S.charts).forEach(c => c.destroy()); S.charts = {};
-  showLogin();
-  if (expired) $('loginErr').textContent = 'Sesi berakhir. Masukkan PIN lagi.';
-}
-
-/* ============================================================
-   MUAT DATA
-   ============================================================ */
-async function loadData() {
-  setLoading(true);
-  $('btnRefresh').disabled = true;
-  const r = await api('data');
-  setLoading(false); $('btnRefresh').disabled = false;
-
-  if (!r.ok) {
-    if (r.code === 'AUTH') return logout(true);
-    toast(r.message || 'Gagal memuat data.');
-    $('updated').textContent = 'Gagal memuat data';
-    return;
-  }
-
-  S.rows = r.rows || [];
-  S.loaded = true;
-
-  // tandai nomor nota yang muncul lebih dari satu kali (bisa jadi data terpaste dua kali)
-  const cnt = {};
-  S.rows.forEach(x => { if (x.nota) cnt[x.nota] = (cnt[x.nota] || 0) + 1; });
-  S.dup = new Set(Object.keys(cnt).filter(k => cnt[k] > 1));
-
-  $('updated').textContent = 'Diperbarui ' + new Date(r.updatedAt).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' });
-
-  const w = $('warn');
-  if (r.skipped > 0) {
-    w.hidden = false;
-    w.innerHTML = `<div><b>${r.skipped} baris dilewati</b> karena tanggal atau nama customer tidak terbaca (baris sheet: ${r.skippedRows.join(', ')}${r.skipped > r.skippedRows.length ? ', …' : ''}). Periksa kolom B dan C pada baris tersebut.</div>`;
-  } else { w.hidden = true; }
-
-  initPeriods();
-  render();
-}
-
-/* ============================================================
-   FILTER
-   ============================================================ */
-function initPeriods() {
-  const months = [...new Set(S.rows.map(r => r.tgl.slice(0, 7)))].sort().reverse();
-  const sel = $('fMonth');
-  sel.innerHTML =
-    '<option value="all">Semua periode</option>' +
-    months.map(m => `<option value="${m}">${monthLabel(m)}</option>`).join('') +
-    '<option value="custom" hidden>Rentang kustom</option>';
-
-  const valid = S.f.month === 'all' || S.f.month === 'custom' || months.includes(S.f.month);
-  if (!S.loadedOnce) { S.f.month = months[0] || 'all'; S.loadedOnce = true; }
-  else if (!valid) S.f.month = 'all';
-
-  if (S.f.month !== 'custom') applyMonth(S.f.month);
-  sel.value = S.f.month;
-  syncInputs();
-}
-function applyMonth(m) {
-  if (m === 'all') { S.f.from = ''; S.f.to = ''; }
-  else if (m !== 'custom') { S.f.from = m + '-01'; S.f.to = `${m}-${pad2(lastDay(m))}`; }
-}
-function syncInputs() { $('fFrom').value = S.f.from; $('fTo').value = S.f.to; $('fQ').value = S.f.q; }
-
-function filterRows(from, to, q) {
-  q = (q || '').trim().toLowerCase();
-  return S.rows.filter(r =>
-    (!from || r.tgl >= from) && (!to || r.tgl <= to) &&
-    (!q || r.customer.toLowerCase().includes(q) || r.nota.toLowerCase().includes(q))
-  );
-}
-
-/* ============================================================
-   RENDER
-   ============================================================ */
-function render() {
-  if (!S.loaded) return;
-  const none = S.rows.length === 0;
-  $('empty').hidden = !none; $('dash').hidden = none;
-  if (none) return;
-
-  const rows = filterRows(S.f.from, S.f.to, S.f.q);
-  renderKpis(rows);
-  renderCharts(rows);
-  renderTable(rows);
-}
-
-function renderKpis(rows) {
-  const tot = sum(rows, 'penjualan'), ppn = sum(rows, 'ppn'), piu = sum(rows, 'piutang');
-  const custs = new Set(rows.map(r => r.customer));
-  const days = new Set(rows.map(r => r.tgl));
-
-  $('hVal').textContent = rp(tot);
-  if (rows.length) {
-    const ds = rows.map(r => r.tgl).sort();
-    $('hPer').textContent = ds[0] === ds[ds.length - 1] ? fmtDate(ds[0]) : `${fmtDate(ds[0])} – ${fmtDate(ds[ds.length - 1])}`;
-  } else $('hPer').textContent = 'Tidak ada nota pada filter ini';
-
-  $('hCust').textContent = num(custs.size);
-  $('hAvg').textContent = rp(days.size ? tot / days.size : 0);
-  const big = rows.reduce((a, r) => (!a || r.penjualan > a.penjualan ? r : a), null);
-  $('hMax').textContent = big ? rp(big.penjualan) : '-';
-  $('hMax').title = big ? `${big.customer} (nota ${big.nota})` : '';
-
-  // perbandingan dengan bulan sebelumnya (hanya bila periode = satu bulan penuh)
-  const chip = $('hDelta'); chip.hidden = true; chip.className = 'chip';
-  if (/^\d{4}-\d{2}$/.test(S.f.month)) {
-    const pm = prevMonth(S.f.month);
-    const prev = sum(filterRows(`${pm}-01`, `${pm}-${pad2(lastDay(pm))}`, S.f.q), 'penjualan');
-    if (prev > 0) {
-      const d = (tot - prev) / prev * 100;
-      chip.hidden = false; chip.classList.add(d >= 0 ? 'up' : 'down');
-      chip.textContent = `${d >= 0 ? '+' : ''}${pct(d)} dibanding ${monthLabel(pm)}`;
-    }
-  }
-
-  $('kPpn').textContent = rp(ppn);
-  $('kPpnF').textContent = tot ? `${pct(ppn / tot * 100)} dari penjualan` : '-';
-  $('kPiu').textContent = rp(piu);
-  $('kNota').textContent = num(rows.length);
-  $('kAvg').textContent = rp(rows.length ? tot / rows.length : 0);
-}
-
-/* ---------- grafik ---------- */
-function themeColors() {
-  const cs = getComputedStyle(root), g = n => cs.getPropertyValue(n).trim();
-  return { muted: g('--muted'), line: 'rgba(128,128,128,.2)',
-           pal: [g('--c1'), g('--c2'), g('--c3'), g('--c4'), g('--c5'), g('--c6')], other: g('--c7') };
-}
-function mk(id, cfg) {
-  if (S.charts[id]) S.charts[id].destroy();
-  S.charts[id] = new Chart($(id), cfg);
-}
-
-function buildTrend(rows) {
-  if (!rows.length) return { labels: [], vals: [], cum: [], gran: 'day' };
-  const ds = rows.map(r => r.tgl).sort(), min = ds[0], max = ds[ds.length - 1];
-  const span = daysBetween(min, max) + 1;
-  let gran = S.gran === 'auto' ? (span <= 62 ? 'day' : 'month') : S.gran;
-  if (gran === 'day' && span > 186) gran = 'month';
-
-  const labels = [], vals = [];
-  if (gran === 'day') {
-    const m = {}; rows.forEach(r => { m[r.tgl] = (m[r.tgl] || 0) + r.penjualan; });
-    for (let d = min; d <= max; d = addDays(d, 1)) { labels.push(fmtDateShort(d)); vals.push(m[d] || 0); }
-  } else {
-    const m = {}; rows.forEach(r => { const k = r.tgl.slice(0, 7); m[k] = (m[k] || 0) + r.penjualan; });
-    for (let k = min.slice(0, 7); k <= max.slice(0, 7); k = nextMonth(k)) { labels.push(monthShort(k)); vals.push(m[k] || 0); }
-  }
-  let run = 0; const cum = vals.map(v => (run += v));
-  return { labels, vals, cum, gran, span };
-}
-
-function renderCharts(rows) {
-  const C = themeColors();
-  Chart.defaults.font.family = "'Plus Jakarta Sans', system-ui, sans-serif";
-  Chart.defaults.font.size = 12;
-  Chart.defaults.color = C.muted;
-
-  /* tren */
-  const t = buildTrend(rows);
-  document.querySelectorAll('[data-g]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.g === t.gran)));
-  $('trendSub').textContent = t.gran === 'day' ? 'Per hari. Batang = penjualan, garis = akumulasi' : 'Per bulan. Batang = penjualan, garis = akumulasi';
-  mk('chTrend', {
-    type: 'bar',
-    data: { labels: t.labels, datasets: [
-      { type: 'bar', label: 'Penjualan', data: t.vals, backgroundColor: C.pal[0], borderRadius: 6, maxBarThickness: 38, order: 2, yAxisID: 'y' },
-      { type: 'line', label: 'Akumulasi', data: t.cum, borderColor: C.pal[1], backgroundColor: C.pal[1], borderWidth: 2.5,
-        tension: .3, pointRadius: t.labels.length > 40 ? 0 : 3, order: 1, yAxisID: 'y1' }
-    ] },
-    options: {
-      responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
-      plugins: {
-        legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 8 } },
-        tooltip: { callbacks: { label: c => ` ${c.dataset.label}: ${rp(c.parsed.y)}` } }
-      },
-      scales: {
-        x: { grid: { display: false }, ticks: { maxRotation: 0, autoSkip: true } },
-        y: { beginAtZero: true, grid: { color: C.line }, ticks: { callback: v => compact(v) } },
-        y1: { position: 'right', beginAtZero: true, grid: { drawOnChartArea: false }, ticks: { callback: v => compact(v) } }
-      }
-    }
-  });
-
-  /* top customer */
-  const agg = custAgg(rows);
-  const top = agg.slice(0, 10);
-  mk('chTop', {
-    type: 'bar',
-    data: { labels: top.map(x => x.customer), datasets: [{ data: top.map(x => x.penjualan), backgroundColor: C.pal[0], borderRadius: 6, maxBarThickness: 22 }] },
-    options: {
-      indexAxis: 'y', responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => ` ${rp(c.parsed.x)}` } } },
-      scales: {
-        x: { beginAtZero: true, grid: { color: C.line }, ticks: { callback: v => compact(v) } },
-        y: { grid: { display: false }, ticks: { callback(v) { const l = this.getLabelForValue(v); return l.length > 24 ? l.slice(0, 23) + '…' : l; } } }
-      }
-    }
-  });
-
-  /* porsi */
-  const t5 = agg.slice(0, 5), rest = agg.slice(5).reduce((a, x) => a + x.penjualan, 0);
-  const labels = t5.map(x => x.customer), data = t5.map(x => x.penjualan);
-  const colors = C.pal.slice(0, t5.length);
-  if (rest > 0) { labels.push('Lainnya'); data.push(rest); colors.push(C.other); }
-  const total = data.reduce((a, b) => a + b, 0);
-  mk('chShare', {
-    type: 'doughnut',
-    data: { labels, datasets: [{ data, backgroundColor: colors, borderWidth: 0, spacing: 3 }] },
-    options: {
-      responsive: true, maintainAspectRatio: false, cutout: '62%',
-      plugins: {
-        legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 8, generateLabels: ch => {
-          const d = ch.data; return d.labels.map((l, i) => ({ text: (l.length > 22 ? l.slice(0, 21) + '…' : l), fillStyle: d.datasets[0].backgroundColor[i], strokeStyle: d.datasets[0].backgroundColor[i], fontColor: C.muted, pointStyle: 'circle', index: i }));
-        } } },
-        tooltip: { callbacks: { label: c => ` ${c.label}: ${rp(c.parsed)} (${pct(total ? c.parsed / total * 100 : 0)})` } }
-      }
-    }
-  });
-}
-
-/* ---------- tabel ---------- */
-const COLS = {
-  nota: [
-    { k: 'nota', t: 'No. Nota' }, { k: 'tgl', t: 'Tanggal' }, { k: 'customer', t: 'Customer' },
-    { k: 'penjualan', t: 'Penjualan', n: 1 }, { k: 'ppn', t: 'PPN 11%', n: 1 }, { k: 'piutang', t: 'Piutang', n: 1 }
-  ],
-  cust: [
-    { k: 'customer', t: 'Customer' }, { k: 'nota', t: 'Jumlah nota', n: 1 },
-    { k: 'penjualan', t: 'Penjualan', n: 1 }, { k: 'ppn', t: 'PPN 11%', n: 1 }, { k: 'piutang', t: 'Piutang', n: 1 }, { k: 'share', t: 'Porsi', n: 1 }
-  ]
-};
-
-function custAgg(rows) {
-  const m = {};
-  rows.forEach(r => {
-    const c = m[r.customer] || (m[r.customer] = { customer: r.customer, nota: 0, penjualan: 0, ppn: 0, piutang: 0 });
-    c.nota++; c.penjualan += r.penjualan; c.ppn += r.ppn; c.piutang += r.piutang;
-  });
-  const tot = sum(rows, 'penjualan');
-  return Object.values(m).map(c => Object.assign(c, { share: tot ? c.penjualan / tot * 100 : 0 })).sort((a, b) => b.penjualan - a.penjualan);
-}
-const cmp = (a, b) => (typeof a === 'number' && typeof b === 'number') ? a - b : String(a).localeCompare(String(b), 'id', { numeric: true });
-
-function renderTable(rows) {
-  const tab = S.tab, cols = COLS[tab];
-  const data = tab === 'nota' ? rows.slice() : custAgg(rows);
-  const { k, d } = S.sort[tab];
-  data.sort((a, b) => cmp(a[k], b[k]) * d);
-
-  const pages = Math.max(1, Math.ceil(data.length / PAGE_SIZE));
-  S.page = Math.min(S.page, pages);
-  const start = (S.page - 1) * PAGE_SIZE, slice = data.slice(start, start + PAGE_SIZE);
-
-  $('tHead').innerHTML = '<tr>' + cols.map(c => {
-    const on = c.k === k, arrow = on ? (d > 0 ? '↑' : '↓') : '';
-    return `<th class="${c.n ? 'num' : ''}" aria-sort="${on ? (d > 0 ? 'ascending' : 'descending') : 'none'}"><button class="th" type="button" data-sort="${c.k}">${c.t}<span>${arrow}</span></button></th>`;
-  }).join('') + '</tr>';
-
-  let anyDup = false;
-  $('tBody').innerHTML = slice.length ? slice.map(r => {
-    if (tab === 'nota') {
-      const dup = S.dup.has(r.nota); if (dup) anyDup = true;
-      return `<tr><td>${esc(r.nota)}${dup ? '<span class="tag" title="Nomor nota ini muncul lebih dari satu kali di sheet">Nota ganda</span>' : ''}</td>
-        <td>${fmtDate(r.tgl)}</td><td class="cust" title="${esc(r.customer)}">${esc(r.customer)}</td>
-        <td class="num">${num(r.penjualan)}</td><td class="num">${num(r.ppn)}</td><td class="num">${num(r.piutang)}</td></tr>`;
-    }
-    return `<tr><td class="cust" title="${esc(r.customer)}">${esc(r.customer)}</td><td class="num">${num(r.nota)}</td>
-      <td class="num">${num(r.penjualan)}</td><td class="num">${num(r.ppn)}</td><td class="num">${num(r.piutang)}</td>
-      <td class="num"><span class="bar"><i style="width:${Math.min(100, r.share)}%"></i></span>${pct(r.share)}</td></tr>`;
-  }).join('') : `<tr><td colspan="${cols.length}" style="text-align:center;padding:36px;color:var(--muted)">Tidak ada nota pada filter ini. Ubah periode atau hapus kata pencarian.</td></tr>`;
-
-  const tp = sum(rows, 'penjualan'), tn = sum(rows, 'ppn'), tu = sum(rows, 'piutang');
-  $('tFoot').innerHTML = tab === 'nota'
-    ? `<tr><td colspan="3">Total (${num(rows.length)} nota)</td><td class="num">${num(tp)}</td><td class="num">${num(tn)}</td><td class="num">${num(tu)}</td></tr>`
-    : `<tr><td>Total (${num(data.length)} customer)</td><td class="num">${num(rows.length)}</td><td class="num">${num(tp)}</td><td class="num">${num(tn)}</td><td class="num">${num(tu)}</td><td class="num">${tp ? '100%' : '-'}</td></tr>`;
-
-  $('pInfo').textContent = data.length ? `Menampilkan ${start + 1}–${start + slice.length} dari ${num(data.length)}` : 'Tidak ada data';
-  $('pPrev').disabled = S.page <= 1; $('pNext').disabled = S.page >= pages;
-  $('dupNote').hidden = !(tab === 'nota' && anyDup);
-  document.querySelectorAll('[data-t]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.t === tab)));
-}
-
-/* ---------- ekspor CSV ---------- */
-function exportCsv() {
-  const rows = filterRows(S.f.from, S.f.to, S.f.q).sort((a, b) => a.tgl.localeCompare(b.tgl) || cmp(a.nota, b.nota));
-  if (!rows.length) return toast('Tidak ada data untuk diunduh.');
-  const q = v => '"' + String(v).replace(/"/g, '""') + '"';
-  const lines = [['No. Nota', 'Tanggal Nota', 'Nama Customer', 'Penjualan', 'PPN 11%', 'Piutang'].map(q).join(';')]
-    .concat(rows.map(r => [q(r.nota), q(r.tgl.split('-').reverse().join('-')), q(r.customer), r.penjualan, r.ppn, r.piutang].join(';')));
-  const blob = new Blob(['\ufeff' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = `omzet_${S.f.from || 'semua'}_${S.f.to || 'periode'}.csv`;
-  document.body.appendChild(a); a.click(); a.remove();
-  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
-}
-
-/* ============================================================
-   EVENT
-   ============================================================ */
-$('pad').addEventListener('click', e => { const b = e.target.closest('button'); if (b) pressKey(b.dataset.k); });
-document.addEventListener('keydown', e => {
-  if (!$('modalBack').hidden) { if (e.key === 'Escape') closeSettings(); return; }
-  if ($('login').hidden) return;
-  if (/^\d$/.test(e.key)) pressKey(e.key);
-  else if (e.key === 'Backspace') pressKey('del');
-  else if (e.key === 'Enter') pressKey('go');
-});
-
-$('btnRefresh').addEventListener('click', loadData);
-$('btnLogout').addEventListener('click', () => logout(false));
-$('btnTheme').addEventListener('click', () => setMode(root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'));
-
-/* pengaturan */
-buildSettings();
-$('btnSettings').addEventListener('click', openSettings);
-$('btnSettingsLogin').addEventListener('click', openSettings);
-$('mClose').addEventListener('click', closeSettings);
-$('mDone').addEventListener('click', closeSettings);
-$('modalBack').addEventListener('click', e => { if (e.target === $('modalBack')) closeSettings(); });
-$('swatches').addEventListener('click', e => { const b = e.target.closest('[data-color]'); if (b) setColor(b.dataset.color); });
-$('styles').addEventListener('click', e => { const b = e.target.closest('[data-style]'); if (b) setStyle(b.dataset.style); });
-$('modeSeg').addEventListener('click', e => { const b = e.target.closest('[data-mode]'); if (b) setMode(b.dataset.mode); });
-$('mReset').addEventListener('click', () => {
-  root.setAttribute('data-color', 'hutan'); root.setAttribute('data-style', 'standar'); root.setAttribute('data-theme', 'light');
-  savePref('omzet_color', 'hutan'); savePref('omzet_style', 'standar'); savePref('omzet_theme', 'light');
-  refreshSettings(); render();
-});
-
-$('fMonth').addEventListener('change', e => { S.f.month = e.target.value; applyMonth(S.f.month); syncInputs(); S.page = 1; render(); });
-const onDate = () => {
-  S.f.from = $('fFrom').value; S.f.to = $('fTo').value;
-  S.f.month = (S.f.from || S.f.to) ? 'custom' : 'all';
-  $('fMonth').value = S.f.month; S.page = 1; render();
-};
-$('fFrom').addEventListener('change', onDate);
-$('fTo').addEventListener('change', onDate);
-let qTimer;
-$('fQ').addEventListener('input', e => { clearTimeout(qTimer); qTimer = setTimeout(() => { S.f.q = e.target.value; S.page = 1; render(); }, 200); });
-$('btnReset').addEventListener('click', () => {
-  S.f = { month: 'all', from: '', to: '', q: '' }; $('fMonth').value = 'all'; syncInputs(); S.page = 1; render();
-});
-
-document.querySelector('[aria-label="Rentang tren"]').addEventListener('click', e => {
-  const b = e.target.closest('button'); if (!b) return; S.gran = b.dataset.g; render();
-});
-document.querySelector('[aria-label="Jenis tabel"]').addEventListener('click', e => {
-  const b = e.target.closest('button'); if (!b) return; S.tab = b.dataset.t; S.page = 1; render();
-});
-$('tHead').addEventListener('click', e => {
-  const b = e.target.closest('[data-sort]'); if (!b) return;
-  const s = S.sort[S.tab], k = b.dataset.sort;
-  if (s.k === k) s.d = -s.d; else { s.k = k; s.d = (k === 'customer' || k === 'nota' && S.tab === 'nota') ? 1 : -1; }
-  S.page = 1; render();
-});
-$('pPrev').addEventListener('click', () => { S.page--; render(); });
-$('pNext').addEventListener('click', () => { S.page++; render(); });
-$('btnCsv').addEventListener('click', exportCsv);
-
-/* ============================================================
-   MULAI
-   ============================================================ */
-renderDots();
-if (getToken()) { showApp(); loadData(); } else { showLogin(); }
-
-})();
-</script>
-</body>
-</html>
+      <button class="btn icon" id="btnSettings
