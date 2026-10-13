@@ -186,7 +186,27 @@ button,input,select{font:inherit; color:inherit}
 .btn svg{flex:none}
 
 .card{background:var(--surface); border:var(--bw) solid var(--bc); border-radius:var(--r); padding:var(--pad); box-shadow:var(--sh)}
-.filters{display:grid; grid-template-columns:1.2fr 1fr 1fr 1.6fr auto; gap:12px; align-items:end; margin-bottom:var(--gap)}
+.filters{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:14px;
+  align-items:end;
+  margin-bottom:var(--gap);
+}
+.filters .q{
+  grid-column:1 / -1;
+}
+.reset-field{
+  display:flex;
+  flex-direction:column;
+}
+
+.reset-field .btn{
+  width:100%;
+  height:40px;
+  justify-content:center;
+  margin-top:auto;
+}
 .field label{display:block; font-size:12px; font-weight:600; color:var(--muted); margin-bottom:5px}
 .field input,.field select{
   width:100%; height:40px; padding:0 12px; border-radius:var(--rs); border:1px solid var(--line);
@@ -302,14 +322,52 @@ tfoot td{font-weight:800; border-bottom:0; border-top:2px solid var(--ink); back
   [data-style="majalah"] .card.s7,[data-style="majalah"] .card.s5{grid-column:span 12}
 }
 @media (max-width:560px){
-  .app{padding:14px 12px 40px}
-  .s3{grid-column:span 12}
-  .btn .t{display:none}
-  .btn{padding:0 11px}
-  .swatches{grid-template-columns:repeat(3,1fr)}
-  .styles{grid-template-columns:1fr}
+
+  .filters{
+    grid-template-columns:1fr;
+  }
+
+  .filters .q{
+    grid-column:auto;
+  }
+
+  .reset-field{
+    order:2;
+  }
+
+  #fMonth,
+  #fFrom,
+  #fTo,
+  #fQ,
+  .reset-field .btn{
+    width:100%;
+  }
+
+  .app{
+    padding:14px 12px 40px;
+  }
+
+  .s3{
+    grid-column:span 12;
+  }
+
+  .btn .t{
+    display:none;
+  }
+
+  .btn{
+    padding:0 11px;
+  }
+
+  .swatches{
+    grid-template-columns:repeat(3,1fr);
+  }
+
+  .styles{
+    grid-template-columns:1fr;
+  }
 }
-@media (prefers-reduced-motion:reduce){
+  @media (prefers-reduced-motion:reduce){
   *{animation:none !important; transition:none !important}
 }
 </style>
@@ -373,24 +431,39 @@ tfoot td{font-weight:800; border-bottom:0; border-top:2px solid var(--ink); back
   </header>
 
   <section class="card filters" aria-label="Filter">
-    <div class="field">
-      <label for="fMonth">Periode</label>
-      <select id="fMonth"></select>
-    </div>
-    <div class="field">
-      <label for="fFrom">Dari tanggal</label>
-      <input type="date" id="fFrom">
-    </div>
-    <div class="field">
-      <label for="fTo">Sampai tanggal</label>
-      <input type="date" id="fTo">
-    </div>
-    <div class="field q">
-      <label for="fQ">Cari customer atau nomor nota</label>
-      <input type="search" id="fQ" placeholder="Contoh: wangta atau 2395" autocomplete="off">
-    </div>
-    <button class="btn" id="btnReset" type="button">Atur ulang</button>
-  </section>
+
+  <div class="field">
+    <label for="fMonth">Periode</label>
+    <select id="fMonth"></select>
+  </div>
+
+  <div class="field reset-field">
+    <label>&nbsp;</label>
+    <button class="btn" id="btnReset" type="button">
+      Atur ulang
+    </button>
+  </div>
+
+  <div class="field">
+    <label for="fFrom">Dari tanggal</label>
+    <input type="date" id="fFrom">
+  </div>
+
+  <div class="field">
+    <label for="fTo">Sampai tanggal</label>
+    <input type="date" id="fTo">
+  </div>
+
+  <div class="field q">
+    <label for="fQ">Cari customer atau nomor nota</label>
+    <input
+      type="search"
+      id="fQ"
+      placeholder="Contoh: wangta atau 2395"
+      autocomplete="off">
+  </div>
+
+</section>
 
   <div class="banner" id="warn" hidden></div>
 
