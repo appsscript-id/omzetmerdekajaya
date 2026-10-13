@@ -324,39 +324,30 @@ tfoot td{font-weight:800; border-bottom:0; border-top:2px solid var(--ink); back
 @media (max-width:560px){
 
   .filters{
-    grid-template-columns:1fr;
+    grid-template-columns:1fr 1fr;
+    gap:12px;
   }
 
   .filters .q{
-    grid-column:auto;
-  }
-
-  .reset-field{
-    order:2;
-  }
-
-  #fMonth,
-  #fFrom,
-  #fTo,
-  #fQ,
-  .reset-field .btn{
-    width:100%;
+    grid-column:1 / -1;
   }
 
   .app{
     padding:14px 12px 40px;
   }
 
-  .s3{
-    grid-column:span 12;
+  .field label{
+    font-size:11px;
+  }
+
+  .field input,
+  .field select,
+  .reset-field .btn{
+    height:42px;
   }
 
   .btn .t{
     display:none;
-  }
-
-  .btn{
-    padding:0 11px;
   }
 
   .swatches{
@@ -366,8 +357,7 @@ tfoot td{font-weight:800; border-bottom:0; border-top:2px solid var(--ink); back
   .styles{
     grid-template-columns:1fr;
   }
-}
-  
+}  
   @media (prefers-reduced-motion:reduce){
   *{animation:none !important; transition:none !important}
 }
