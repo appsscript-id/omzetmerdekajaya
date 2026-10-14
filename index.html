@@ -348,6 +348,7 @@ tfoot td{font-weight:800; border-bottom:0; border-top:2px solid var(--ink); back
 .opt span{display:block; font-size:11px; color:var(--muted); margin-top:1px}
 .opt:hover{background:var(--line)}
 .opt[aria-pressed="true"]{border-color:var(--brand); background:var(--surface)}
+.opt:disabled{opacity:.45; cursor:not-allowed}
 .modal-f{display:flex; justify-content:space-between; gap:8px; margin-top:20px; flex-wrap:wrap}
 
 /* ---------- responsif ---------- */
@@ -608,9 +609,9 @@ tfoot td{font-weight:800; border-bottom:0; border-top:2px solid var(--ink); back
 </div>
 
 <!-- ===================== PEMUTAR MUSIK ===================== -->
-<audio id="music" src="musik.mp3" preload="auto" loop></audio>
+<audio id="music" preload="none"></audio>
 <div class="player" id="player" hidden role="region" aria-label="Pemutar musik">
-  <div class="p-t">Musik<small id="pTime">0:00</small></div>
+  <div class="p-t"><span id="pTitle">Musik</span><small id="pTime">0:00</small></div>
   <input type="range" id="pVol" min="0" max="100" value="30" aria-label="Volume musik">
   <button class="btn icon" id="pToggle" type="button" aria-label="Jeda musik">❚❚</button>
   <button class="btn icon" id="pClose" type="button" aria-label="Tutup musik">
@@ -639,6 +640,10 @@ tfoot td{font-weight:800; border-bottom:0; border-top:2px solid var(--ink); back
       <button type="button" data-music="on" aria-pressed="false">Hidup</button>
       <button type="button" data-music="off" aria-pressed="false">Mati</button>
     </div>
+
+    <h3>Lagu</h3>
+    <p class="hint">Acak = berganti lagu sendiri. Memilih satu lagu = lagu itu diulang terus.</p>
+    <div class="styles" id="tracks"></div>
 
     <h3>Bunyi tombol PIN</h3>
     <div class="seg" role="group" aria-label="Bunyi tombol PIN" id="keysSeg">
@@ -833,30 +838,69 @@ $('pVol').addEventListener('input', e => {
 });
 const musicOn = () => { try { return localStorage.getItem('omzet_music') !== 'off'; } catch (e) { return true; } };
 const fmtTime = s => { s = Math.floor(s || 0); return Math.floor(s / 60) + ':' + pad2(s % 60); };
-let unlockP = null;
+/* Daftar lagu. Ubah "n" untuk mengganti judul yang tampil, "f" = nama file di GitHub.
+   Lagu yang filenya belum diunggah otomatis tidak bisa dipilih. */
+const TRACKS = [
+  { id: '1', n: 'Lagu 1', f: 'musik.mp3' },
+  { id: '2', n: 'Lagu 2', f: 'musik2.mp3' },
+  { id: '3', n: 'Lagu 3', f: 'musik3.mp3' },
+  { id: '4', n: 'Lagu 4', f: 'musik4.mp3' },
+  { id: '5', n: 'Lagu 5', f: 'musik5.mp3' }
+];
+TRACKS.forEach(t => { t.ok = true; });
+const SILENT = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=';
+const getTrackPref = () => { try { return localStorage.getItem('omzet_track') || 'acak'; } catch (e) { return 'acak'; } };
+let unlockP = null, unlocking = false, curTrack = null;
+
+// cek file mana yang sudah diunggah (hanya bertanya "ada atau tidak", tidak mengunduh lagunya)
+function checkTracks() {
+  return Promise.all(TRACKS.map(t =>
+    fetch(t.f, { method: 'HEAD', cache: 'no-store' }).then(r => { t.ok = r.ok; }).catch(() => { t.ok = true; })
+  ));
+}
+function pickTrack(exclude) {
+  const av = TRACKS.filter(t => t.ok);
+  if (!av.length) return null;
+  const pref = getTrackPref();
+  if (pref !== 'acak') return av.find(x => x.id === pref) || av.find(x => x.id === '1') || av[0];
+  const pool = (av.length > 1 && exclude) ? av.filter(t => t.id !== exclude.id) : av;
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+function playTrack(t) {
+  if (!t) { player.hidden = true; toast('Belum ada file musik di folder yang sama dengan index.html.'); return; }
+  curTrack = t;
+  music.loop = getTrackPref() !== 'acak';
+  music.muted = false;
+  music.src = t.f;
+  $('pTitle').textContent = t.n;
+  player.hidden = false;
+  const p = music.play();
+  if (p && p.catch) p.catch(() => {});
+}
+function renderTracks() {
+  const pref = getTrackPref();
+  const items = [{ id: 'acak', n: 'Acak', d: 'Berganti lagu sendiri', ok: true }]
+    .concat(TRACKS.map(t => ({ id: t.id, n: t.n, d: t.ok ? 'Diulang terus' : 'Belum tersedia', ok: t.ok })));
+  $('tracks').innerHTML = items.map(i =>
+    `<button type="button" class="opt" data-track="${i.id}" aria-pressed="${i.id === pref}" ${i.ok ? '' : 'disabled'}><b>${esc(i.n)}</b><span>${esc(i.d)}</span></button>`).join('');
+}
 
 // dipanggil saat tombol Masuk ditekan: membuka kunci audio supaya HP (terutama iPhone) mau memutar musik nanti
 function unlockMusic() {
   if (!musicOn()) return;
   try {
-    music.muted = true;
+    unlocking = true;
+    music.loop = false; music.muted = true; music.src = SILENT;
     const p = music.play();
-    if (p && p.then) {
-      unlockP = p.then(() => { music.pause(); music.currentTime = 0; music.muted = false; })
-                 .catch(() => { music.muted = false; });
-    }
-  } catch (e) { music.muted = false; }
+    unlockP = Promise.resolve(p).catch(() => {}).then(() => {
+      try { music.pause(); } catch (e) {}
+      music.muted = false; unlocking = false;
+    });
+  } catch (e) { music.muted = false; unlocking = false; }
 }
 function startMusic() {
   if (!musicOn()) return;
-  Promise.resolve(unlockP).then(() => {
-    music.muted = false; music.currentTime = 0;
-    player.hidden = false;
-    const p = music.play();
-    if (p && p.catch) p.catch(() => {
-      if (music.error) { player.hidden = true; toast('File musik.mp3 tidak ditemukan di folder yang sama dengan index.html.'); }
-    });
-  });
+  Promise.all([Promise.resolve(unlockP), checkTracks()]).then(() => playTrack(pickTrack(null)));
 }
 function stopMusic() {
   try { music.pause(); music.currentTime = 0; } catch (e) {}
@@ -869,6 +913,20 @@ function syncPlayer() {
 }
 music.addEventListener('play', syncPlayer);
 music.addEventListener('pause', syncPlayer);
+// mode Acak: setelah satu lagu selesai, lanjut ke lagu lain
+music.addEventListener('ended', () => {
+  if (unlocking || getTrackPref() !== 'acak') return;
+  playTrack(pickTrack(curTrack));
+});
+// file lagu tidak ditemukan: tandai tidak tersedia, pindah ke lagu lain bila ada
+music.addEventListener('error', () => {
+  const src = music.getAttribute('src') || '';
+  if (unlocking || !curTrack || !src || src.indexOf('data:') === 0) return;
+  curTrack.ok = false;
+  const n = pickTrack(null);
+  if (n && n !== curTrack) playTrack(n);
+  else { player.hidden = true; toast('File lagu tidak ditemukan di folder yang sama dengan index.html.'); }
+});
 music.addEventListener('timeupdate', () => {
   $('pTime').textContent = fmtTime(music.currentTime) + (isFinite(music.duration) ? ' / ' + fmtTime(music.duration) : '');
 });
@@ -911,6 +969,7 @@ function refreshSettings() {
   document.querySelectorAll('#modeSeg button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.mode === m)));
   document.querySelectorAll('#musicSeg button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.music === (musicOn() ? 'on' : 'off'))));
   document.querySelectorAll('#keysSeg button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.keys === (keysOn() ? 'on' : 'off'))));
+  renderTracks();
 }
 function setColor(id) { root.setAttribute('data-color', id); savePref('omzet_color', id); refreshSettings(); render(); }
 function setStyle(id) { root.setAttribute('data-style', id); savePref('omzet_style', id); refreshSettings(); }
@@ -923,7 +982,7 @@ function buildSettings() {
     `<button type="button" class="opt" data-style="${s.id}" aria-pressed="false"><b>${esc(s.n)}</b><span>${esc(s.d)}</span></button>`).join('');
   refreshSettings();
 }
-function openSettings() { $('modalBack').hidden = false; refreshSettings(); $('mDone').focus(); }
+function openSettings() { $('modalBack').hidden = false; refreshSettings(); checkTracks().then(renderTracks); $('mDone').focus(); }
 function closeSettings() { $('modalBack').hidden = true; }
 
 /* ============================================================
@@ -1293,7 +1352,12 @@ $('musicSeg').addEventListener('click', e => {
   const b = e.target.closest('[data-music]'); if (!b) return;
   savePref('omzet_music', b.dataset.music); refreshSettings();
   if (b.dataset.music === 'off') stopMusic();
-  else if (!$('app').hidden) { player.hidden = false; music.play().catch(() => {}); }
+  else if (!$('app').hidden) { checkTracks().then(() => playTrack(pickTrack(null))); }
+});
+$('tracks').addEventListener('click', e => {
+  const b = e.target.closest('[data-track]'); if (!b || b.disabled) return;
+  savePref('omzet_track', b.dataset.track); renderTracks();
+  if (!player.hidden) playTrack(pickTrack(null));   // musik sedang berjalan: langsung ganti
 });
 $('keysSeg').addEventListener('click', e => {
   const b = e.target.closest('[data-keys]'); if (!b) return;
@@ -1302,7 +1366,7 @@ $('keysSeg').addEventListener('click', e => {
 });
 $('mReset').addEventListener('click', () => {
   root.setAttribute('data-color', 'hutan'); root.setAttribute('data-style', 'standar'); root.setAttribute('data-theme', 'light');
-  savePref('omzet_color', 'hutan'); savePref('omzet_style', 'standar'); savePref('omzet_theme', 'light'); savePref('omzet_music', 'on'); savePref('omzet_keys', 'on');
+  savePref('omzet_color', 'hutan'); savePref('omzet_style', 'standar'); savePref('omzet_theme', 'light'); savePref('omzet_music', 'on'); savePref('omzet_keys', 'on'); savePref('omzet_track', 'acak');
   refreshSettings(); render();
 });
 
