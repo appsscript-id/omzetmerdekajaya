@@ -735,7 +735,7 @@ const S = {
 /* kembalikan filter, tabel, dan posisi halaman ke keadaan awal */
 function resetView() {
   S.f = { month: 'all', from: '', to: '', q: '' };
-  S.loadedOnce = false;          // supaya periode otomatis kembali ke bulan terbaru
+  S.loadedOnce = false;          // supaya periode kembali ke "Semua periode"
   S.gran = 'auto';
   S.tab = 'nota'; S.page = 1;
   S.sort = { nota: { k: 'tgl', d: -1 }, cust: { k: 'penjualan', d: -1 } };
@@ -946,7 +946,7 @@ function initPeriods() {
     '<option value="custom" hidden>Rentang kustom</option>';
 
   const valid = S.f.month === 'all' || S.f.month === 'custom' || months.includes(S.f.month);
-  if (!S.loadedOnce) { S.f.month = months[0] || 'all'; S.loadedOnce = true; }
+  if (!S.loadedOnce) { S.f.month = 'all'; S.loadedOnce = true; }   // awal selalu "Semua periode"
   else if (!valid) S.f.month = 'all';
 
   if (S.f.month !== 'custom') applyMonth(S.f.month);
