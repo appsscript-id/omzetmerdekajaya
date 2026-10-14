@@ -216,8 +216,6 @@ button,input,select{
 .reset-field{
   width:100%;
   min-width:0;
-}  width:100%;
-  min-width:0;
 }
 
 .field input,
@@ -310,6 +308,17 @@ tfoot td{font-weight:800; border-bottom:0; border-top:2px solid var(--ink); back
   position:fixed; left:50%; bottom:24px; transform:translateX(-50%); background:var(--ink); color:var(--bg);
   padding:11px 18px; border-radius:12px; font-weight:600; font-size:13px; z-index:95; max-width:92vw;
 }
+
+/* ---------- pemutar musik ---------- */
+.player{
+  position:fixed; right:16px; bottom:16px; z-index:60;
+  display:flex; align-items:center; gap:10px; padding:7px 7px 7px 16px;
+  background:var(--surface); border:var(--bw) solid var(--bc); border-radius:999px;
+  box-shadow:0 10px 30px -10px rgba(0,0,0,.4);
+}
+.player .p-t{font-size:12px; font-weight:700; line-height:1.25; min-width:76px}
+.player .p-t small{display:block; color:var(--muted); font-weight:500}
+.player .btn{border-radius:50%}
 
 /* ---------- pengaturan ---------- */
 .modal-back{position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:80; display:grid; place-items:center; padding:16px}
@@ -408,9 +417,13 @@ tfoot td{font-weight:800; border-bottom:0; border-top:2px solid var(--ink); back
   .styles{
     grid-template-columns:1fr;
   }
-}  
-  
-  @media (prefers-reduced-motion:reduce){
+
+  .player{
+    left:12px; right:12px; bottom:12px; justify-content:space-between;
+  }
+}
+
+@media (prefers-reduced-motion:reduce){
   *{animation:none !important; transition:none !important}
 }
 </style>
@@ -593,6 +606,16 @@ tfoot td{font-weight:800; border-bottom:0; border-top:2px solid var(--ink); back
   </div>
 </div>
 
+<!-- ===================== PEMUTAR MUSIK ===================== -->
+<audio id="music" src="musik.mp3" preload="auto" loop></audio>
+<div class="player" id="player" hidden role="region" aria-label="Pemutar musik">
+  <div class="p-t">Musik<small id="pTime">0:00</small></div>
+  <button class="btn icon" id="pToggle" type="button" aria-label="Jeda musik">❚❚</button>
+  <button class="btn icon" id="pClose" type="button" aria-label="Tutup musik">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+  </button>
+</div>
+
 <!-- ===================== PENGATURAN ===================== -->
 <div class="modal-back" id="modalBack" hidden>
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="mTitle">
@@ -607,6 +630,12 @@ tfoot td{font-weight:800; border-bottom:0; border-top:2px solid var(--ink); back
     <div class="seg" role="group" aria-label="Mode terang atau gelap" id="modeSeg">
       <button type="button" data-mode="light" aria-pressed="false">Terang</button>
       <button type="button" data-mode="dark" aria-pressed="false">Gelap</button>
+    </div>
+
+    <h3>Musik setelah masuk</h3>
+    <div class="seg" role="group" aria-label="Musik setelah masuk" id="musicSeg">
+      <button type="button" data-music="on" aria-pressed="false">Hidup</button>
+      <button type="button" data-music="off" aria-pressed="false">Mati</button>
     </div>
 
     <h3>Tema warna</h3>
@@ -703,6 +732,16 @@ const S = {
   charts: {}, loaded: false, pin: ''
 };
 
+/* kembalikan filter, tabel, dan posisi halaman ke keadaan awal */
+function resetView() {
+  S.f = { month: 'all', from: '', to: '', q: '' };
+  S.loadedOnce = false;          // supaya periode otomatis kembali ke bulan terbaru
+  S.gran = 'auto';
+  S.tab = 'nota'; S.page = 1;
+  S.sort = { nota: { k: 'tgl', d: -1 }, cust: { k: 'penjualan', d: -1 } };
+  window.scrollTo(0, 0);
+}
+
 /* ============================================================
    API
    ============================================================ */
@@ -742,6 +781,57 @@ function showLogin() {
 function showApp() { $('login').hidden = true; $('app').hidden = false; }
 
 /* ============================================================
+   MUSIK
+   Taruh file mp3 di folder yang sama dengan index.html, beri nama
+   musik.mp3 (atau ubah atribut src pada tag <audio id="music">).
+   Musik berulang terus sampai tombol Tutup ditekan atau Keluar.
+   ============================================================ */
+const music = $('music'), player = $('player');
+const musicOn = () => { try { return localStorage.getItem('omzet_music') !== 'off'; } catch (e) { return true; } };
+const fmtTime = s => { s = Math.floor(s || 0); return Math.floor(s / 60) + ':' + pad2(s % 60); };
+let unlockP = null;
+
+// dipanggil saat tombol Masuk ditekan: membuka kunci audio supaya HP (terutama iPhone) mau memutar musik nanti
+function unlockMusic() {
+  if (!musicOn()) return;
+  try {
+    music.muted = true;
+    const p = music.play();
+    if (p && p.then) {
+      unlockP = p.then(() => { music.pause(); music.currentTime = 0; music.muted = false; })
+                 .catch(() => { music.muted = false; });
+    }
+  } catch (e) { music.muted = false; }
+}
+function startMusic() {
+  if (!musicOn()) return;
+  Promise.resolve(unlockP).then(() => {
+    music.muted = false; music.currentTime = 0;
+    player.hidden = false;
+    const p = music.play();
+    if (p && p.catch) p.catch(() => {
+      if (music.error) { player.hidden = true; toast('File musik.mp3 tidak ditemukan di folder yang sama dengan index.html.'); }
+    });
+  });
+}
+function stopMusic() {
+  try { music.pause(); music.currentTime = 0; } catch (e) {}
+  player.hidden = true;
+}
+function syncPlayer() {
+  const playing = !music.paused;
+  $('pToggle').textContent = playing ? '❚❚' : '▶';
+  $('pToggle').setAttribute('aria-label', playing ? 'Jeda musik' : 'Putar musik');
+}
+music.addEventListener('play', syncPlayer);
+music.addEventListener('pause', syncPlayer);
+music.addEventListener('timeupdate', () => {
+  $('pTime').textContent = fmtTime(music.currentTime) + (isFinite(music.duration) ? ' / ' + fmtTime(music.duration) : '');
+});
+$('pToggle').addEventListener('click', () => { music.paused ? music.play().catch(() => {}) : music.pause(); });
+$('pClose').addEventListener('click', stopMusic);
+
+/* ============================================================
    PENGATURAN TAMPILAN
    ============================================================ */
 const savePref = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
@@ -751,6 +841,7 @@ function refreshSettings() {
   document.querySelectorAll('#swatches .sw').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.color === c)));
   document.querySelectorAll('#styles .opt').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.style === s)));
   document.querySelectorAll('#modeSeg button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.mode === m)));
+  document.querySelectorAll('#musicSeg button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.music === (musicOn() ? 'on' : 'off'))));
 }
 function setColor(id) { root.setAttribute('data-color', id); savePref('omzet_color', id); refreshSettings(); render(); }
 function setStyle(id) { root.setAttribute('data-style', id); savePref('omzet_style', id); refreshSettings(); }
@@ -785,10 +876,13 @@ async function submitPin() {
   if (!S.pin) { $('loginErr').textContent = 'Masukkan PIN dulu.'; return; }
   const btns = $('pad').querySelectorAll('button');
   btns.forEach(b => b.disabled = true); setLoading(true);
+  unlockMusic();
   const r = await api('login', { pin: S.pin, token: '' });
   btns.forEach(b => b.disabled = false); setLoading(false);
   if (r.ok) {
-    setToken(r.token); S.pin = ''; renderDots(); showApp(); loadData();
+    setToken(r.token); S.pin = ''; renderDots();
+    resetView();                 // tampilan & filter mulai dari awal setelah masuk
+    showApp(); loadData(); startMusic();
   } else {
     $('loginErr').textContent = r.message || 'Gagal masuk.';
     S.pin = ''; renderDots();
@@ -798,6 +892,7 @@ async function submitPin() {
 async function logout(expired) {
   if (!expired) await api('logout');
   setToken(''); S.loaded = false;
+  stopMusic();
   Object.values(S.charts).forEach(c => c.destroy()); S.charts = {};
   showLogin();
   if (expired) $('loginErr').textContent = 'Sesi berakhir. Masukkan PIN lagi.';
@@ -1124,9 +1219,15 @@ $('modalBack').addEventListener('click', e => { if (e.target === $('modalBack'))
 $('swatches').addEventListener('click', e => { const b = e.target.closest('[data-color]'); if (b) setColor(b.dataset.color); });
 $('styles').addEventListener('click', e => { const b = e.target.closest('[data-style]'); if (b) setStyle(b.dataset.style); });
 $('modeSeg').addEventListener('click', e => { const b = e.target.closest('[data-mode]'); if (b) setMode(b.dataset.mode); });
+$('musicSeg').addEventListener('click', e => {
+  const b = e.target.closest('[data-music]'); if (!b) return;
+  savePref('omzet_music', b.dataset.music); refreshSettings();
+  if (b.dataset.music === 'off') stopMusic();
+  else if (!$('app').hidden) { player.hidden = false; music.play().catch(() => {}); }
+});
 $('mReset').addEventListener('click', () => {
   root.setAttribute('data-color', 'hutan'); root.setAttribute('data-style', 'standar'); root.setAttribute('data-theme', 'light');
-  savePref('omzet_color', 'hutan'); savePref('omzet_style', 'standar'); savePref('omzet_theme', 'light');
+  savePref('omzet_color', 'hutan'); savePref('omzet_style', 'standar'); savePref('omzet_theme', 'light'); savePref('omzet_music', 'on');
   refreshSettings(); render();
 });
 
