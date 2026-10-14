@@ -748,6 +748,33 @@ function resetView() {
 const getToken = () => { try { return sessionStorage.getItem(TOKEN_KEY) || ''; } catch (e) { return ''; } };
 const setToken = t => { try { t ? sessionStorage.setItem(TOKEN_KEY, t) : sessionStorage.removeItem(TOKEN_KEY); } catch (e) {} };
 
+/* kode acak per browser, dikirim saat login untuk riwayat login (tidak tampil di aplikasi) */
+const DEVICE_KEY = 'omzet_device';
+function deviceId() {
+  try {
+    let id = localStorage.getItem(DEVICE_KEY);
+    if (!/^[a-f0-9]{16}$/.test(id || '')) {
+      const a = new Uint8Array(8);
+      if (window.crypto && crypto.getRandomValues) crypto.getRandomValues(a);
+      else for (let i = 0; i < 8; i++) a[i] = Math.floor(Math.random() * 256);
+      id = Array.from(a, b => b.toString(16).padStart(2, '0')).join('');
+      localStorage.setItem(DEVICE_KEY, id);
+    }
+    return id;
+  } catch (e) { return ''; }
+}
+function deviceInfo() {
+  let tz = '';
+  try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch (e) {}
+  return {
+    device: deviceId(),
+    ua: navigator.userAgent || '',
+    touch: navigator.maxTouchPoints || 0,
+    screen: (screen.width || 0) + 'x' + (screen.height || 0),
+    tz: tz
+  };
+}
+
 async function api(action, payload = {}) {
   if (!API_URL || API_URL.indexOf('GANTI_') === 0) {
     return { ok: false, message: 'URL Web App belum diisi di index.html (variabel API_URL).' };
@@ -877,7 +904,7 @@ async function submitPin() {
   const btns = $('pad').querySelectorAll('button');
   btns.forEach(b => b.disabled = true); setLoading(true);
   unlockMusic();
-  const r = await api('login', { pin: S.pin, token: '' });
+  const r = await api('login', Object.assign({ pin: S.pin, token: '' }, deviceInfo()));
   btns.forEach(b => b.disabled = false); setLoading(false);
   if (r.ok) {
     setToken(r.token); S.pin = ''; renderDots();
