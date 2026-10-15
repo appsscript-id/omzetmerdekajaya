@@ -235,6 +235,10 @@ button,input,select{
   justify-content:center;
   margin-top:auto;
 }
+.yrs{display:flex; flex-wrap:wrap; gap:8px; align-items:center; min-height:40px}
+.yrs .btn{height:40px; min-width:68px; justify-content:center}
+.yrs .btn[aria-pressed="true"]{background:var(--brand); border-color:var(--brand); color:var(--brand-ink)}
+.yrs .btn[aria-pressed="true"]:hover{filter:brightness(1.08)}
 .field label{display:block; font-size:12px; font-weight:600; color:var(--muted); margin-bottom:5px}
 .field input,.field select{
   width:100%; height:40px; padding:0 12px; border-radius:var(--rs); border:1px solid var(--line);
@@ -356,7 +360,6 @@ tfoot td{font-weight:800; border-bottom:0; border-top:2px solid var(--ink); back
   .filters{
     grid-template-columns:repeat(2,minmax(0,1fr));
   }
-  .filters .field.q{grid-column:span 2}
   .s3{grid-column:span 6}
   .s4,.s5,.s7,.s8{grid-column:span 12}
   .hero{min-height:0}
@@ -388,8 +391,15 @@ tfoot td{font-weight:800; border-bottom:0; border-top:2px solid var(--ink); back
     min-width:0;
   }
 
-  .filters .q{
+  .filters .q,
+  .filters .reset-field{
     grid-column:1 / -1;
+  }
+
+  .yrs .btn{
+    min-width:0;
+    flex:1 1 0;
+    padding:0 8px;
   }
 
   .app{
@@ -495,11 +505,9 @@ tfoot td{font-weight:800; border-bottom:0; border-top:2px solid var(--ink); back
     <select id="fMonth"></select>
   </div>
 
-  <div class="field reset-field">
-    <label>&nbsp;</label>
-    <button class="btn" id="btnReset" type="button">
-      Atur ulang
-    </button>
+  <div class="field year-field">
+    <label id="lblYears">Tahun</label>
+    <div class="yrs" id="fYears" role="group" aria-labelledby="lblYears"></div>
   </div>
 
   <div class="field">
@@ -519,6 +527,13 @@ tfoot td{font-weight:800; border-bottom:0; border-top:2px solid var(--ink); back
       id="fQ"
       placeholder="Contoh: wangta atau 2395"
       autocomplete="off">
+  </div>
+
+  <div class="field reset-field">
+    <label>&nbsp;</label>
+    <button class="btn" id="btnReset" type="button">
+      Atur ulang
+    </button>
   </div>
 
 </section>
@@ -1082,13 +1097,23 @@ function initPeriods() {
 
   if (S.f.month !== 'custom') applyMonth(S.f.month);
   sel.value = S.f.month;
+
+  // tombol tahun sesuai data di sheet (contoh: 2025, 2026)
+  const years = [...new Set(S.rows.map(r => r.tgl.slice(0, 4)))].sort();
+  $('fYears').innerHTML = years.map(y => `<button type="button" class="btn" data-y="${y}" aria-pressed="false">${y}</button>`).join('');
   syncInputs();
+}
+function updateYears() {
+  document.querySelectorAll('#fYears button').forEach(b => {
+    const y = b.dataset.y;
+    b.setAttribute('aria-pressed', (S.f.from === y + '-01-01' && S.f.to === y + '-12-31') ? 'true' : 'false');
+  });
 }
 function applyMonth(m) {
   if (m === 'all') { S.f.from = ''; S.f.to = ''; }
   else if (m !== 'custom') { S.f.from = m + '-01'; S.f.to = `${m}-${pad2(lastDay(m))}`; }
 }
-function syncInputs() { $('fFrom').value = S.f.from; $('fTo').value = S.f.to; $('fQ').value = S.f.q; }
+function syncInputs() { $('fFrom').value = S.f.from; $('fTo').value = S.f.to; $('fQ').value = S.f.q; updateYears(); }
 
 function filterRows(from, to, q) {
   q = (q || '').trim().toLowerCase();
@@ -1376,10 +1401,20 @@ $('fMonth').addEventListener('change', e => { S.f.month = e.target.value; applyM
 const onDate = () => {
   S.f.from = $('fFrom').value; S.f.to = $('fTo').value;
   S.f.month = (S.f.from || S.f.to) ? 'custom' : 'all';
-  $('fMonth').value = S.f.month; S.page = 1; render();
+  $('fMonth').value = S.f.month; updateYears(); S.page = 1; render();
 };
 $('fFrom').addEventListener('change', onDate);
 $('fTo').addEventListener('change', onDate);
+$('fYears').addEventListener('click', e => {
+  const b = e.target.closest('button[data-y]'); if (!b) return;
+  const y = b.dataset.y;
+  if (b.getAttribute('aria-pressed') === 'true') {          // klik lagi = kembali ke semua periode
+    S.f.month = 'all'; applyMonth('all');
+  } else {
+    S.f.month = 'custom'; S.f.from = y + '-01-01'; S.f.to = y + '-12-31';
+  }
+  $('fMonth').value = S.f.month; syncInputs(); S.page = 1; render();
+});
 let qTimer;
 $('fQ').addEventListener('input', e => { clearTimeout(qTimer); qTimer = setTimeout(() => { S.f.q = e.target.value; S.page = 1; render(); }, 200); });
 $('btnReset').addEventListener('click', () => {
