@@ -603,7 +603,7 @@ tfoot td{font-weight:800; border-bottom:0; border-top:2px solid var(--ink); back
           <button class="btn" id="pNext" type="button">Berikutnya</button>
         </span>
       </div>
-      <p class="note" id="dupNote" hidden>Tanda “Nota ganda” muncul bila nomor nota yang sama tercatat lebih dari satu kali di sheet. Biasanya itu data yang terpaste dua kali, jadi periksa dan hapus salah satunya.</p>
+      <p class="note" id="dupNote" hidden>Tanda “Nota ganda” muncul bila nomor nota yang sama tercatat lebih dari satu kali pada tahun yang sama. Biasanya itu data yang terpaste dua kali, jadi periksa dan hapus salah satunya.</p>
     </section>
   </div>
 </div>
@@ -734,6 +734,8 @@ const nextMonth = k => { let [y,m] = k.split('-').map(Number); m++; if (m > 12) 
 const prevMonth = k => { let [y,m] = k.split('-').map(Number); m--; if (m < 1) { m = 12; y--; } return `${y}-${pad2(m)}`; };
 const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const sum = (arr, k) => arr.reduce((a, r) => a + (r[k] || 0), 0);
+// kunci nota ganda: nomor yang sama DAN tahun yang sama (nomor nota mulai dari 1 lagi tiap tahun)
+const dupKey = r => r.tgl.slice(0, 4) + '|' + r.nota;
 
 /* ---------- state ---------- */
 const S = {
@@ -1046,9 +1048,9 @@ async function loadData() {
   S.rows = r.rows || [];
   S.loaded = true;
 
-  // tandai nomor nota yang muncul lebih dari satu kali (bisa jadi data terpaste dua kali)
+  // tandai nota ganda: nomor sama DAN tahun sama (data yang mungkin terpaste dua kali)
   const cnt = {};
-  S.rows.forEach(x => { if (x.nota) cnt[x.nota] = (cnt[x.nota] || 0) + 1; });
+  S.rows.forEach(x => { if (x.nota) { const k = dupKey(x); cnt[k] = (cnt[k] || 0) + 1; } });
   S.dup = new Set(Object.keys(cnt).filter(k => cnt[k] > 1));
 
   $('updated').textContent = 'Diperbarui ' + new Date(r.updatedAt).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' });
@@ -1286,8 +1288,8 @@ function renderTable(rows) {
   let anyDup = false;
   $('tBody').innerHTML = slice.length ? slice.map(r => {
     if (tab === 'nota') {
-      const dup = S.dup.has(r.nota); if (dup) anyDup = true;
-      return `<tr><td>${esc(r.nota)}${dup ? '<span class="tag" title="Nomor nota ini muncul lebih dari satu kali di sheet">Nota ganda</span>' : ''}</td>
+      const dup = S.dup.has(dupKey(r)); if (dup) anyDup = true;
+      return `<tr><td>${esc(r.nota)}${dup ? '<span class="tag" title="Nomor nota ini muncul lebih dari satu kali pada tahun yang sama">Nota ganda</span>' : ''}</td>
         <td>${fmtDate(r.tgl)}</td><td class="cust" title="${esc(r.customer)}">${esc(r.customer)}</td>
         <td class="num">${num(r.penjualan)}</td><td class="num">${num(r.ppn)}</td><td class="num">${num(r.piutang)}</td></tr>`;
     }
