@@ -25,8 +25,7 @@ self.addEventListener('install', e => {
 self.addEventListener('activate', e => {
   e.waitUntil(
     caches.keys()
-      // hanya hapus cache lama milik aplikasi ini (awalan "omzet-"), jangan sentuh aplikasi lain di domain yang sama
-      .then(keys => Promise.all(keys.filter(k => k.startsWith('omzet-') && k !== VERSION).map(k => caches.delete(k))))
+      .then(keys => Promise.all(keys.filter(k => k !== VERSION).map(k => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });
