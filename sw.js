@@ -4,7 +4,7 @@
      adalah POST dan lintas-domain, jadi selalu langsung ke server).
    - File musik tidak disimpan (besar). Ubah VERSION bila ingin memaksa
      semua perangkat mengambil versi baru. */
-const VERSION = 'omzet-v1';
+const VERSION = 'omzet-v2';
 const SHELL = [
   './',
   './index.html',
